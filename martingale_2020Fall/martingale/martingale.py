@@ -96,7 +96,7 @@ def test_code():
         for i in range(10):
             legend_labels.append('Run '+str(i+1))
         plt.legend(legend_labels)
-        plt.savefig('figures/exp1_fig1.png')
+        plt.savefig('./exp1_fig1.png')
         plt.clf()
     
     def generate_figure_2_3():
@@ -114,7 +114,7 @@ def test_code():
         axes = set_plot_labels_experiment_1()
         axes.set_title("Mean Winnings")
         plt.legend(['Mean', 'Mean + Standard Deviation', 'Mean - Standard Deviation'])
-        plt.savefig('figures/exp1_fig2.png')
+        plt.savefig('./exp1_fig2.png')
         plt.clf()
 
         medians = np.median(np_arr_history, 0)
@@ -124,7 +124,7 @@ def test_code():
         axes = set_plot_labels_experiment_1()
         axes.set_title("Median Winnings")
         plt.legend(['Median', 'Median + Standard Deviation', 'Median - Standard Deviation'])
-        plt.savefig('figures/exp1_fig3.png')
+        plt.savefig('./exp1_fig3.png')
         plt.clf()
 
     def set_plot_labels_experiment_1():
@@ -170,7 +170,7 @@ def test_code():
         axes = set_plot_labels_experiment_1()
         axes.set_title("Mean Winnings")
         plt.legend(['Mean', 'Mean + Standard Deviation', 'Mean - Standard Deviation'])
-        plt.savefig('figures/exp2_fig4.png')
+        plt.savefig('./exp2_fig4.png')
         plt.clf()
 
         medians = np.median(np_arr_history, 0)
@@ -180,7 +180,7 @@ def test_code():
         axes = set_plot_labels_experiment_1()
         axes.set_title("Median Winnings")
         plt.legend(['Median', 'Median + Standard Deviation', 'Median - Standard Deviation'])
-        plt.savefig('figures/exp2_fig5.png')
+        plt.savefig('./exp2_fig5.png')
         plt.clf()
 
     generate_figure_4_5()
