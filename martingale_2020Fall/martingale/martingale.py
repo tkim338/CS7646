@@ -157,8 +157,11 @@ def test_code():
 
     def generate_figure_4_5():
         history = []
+        count = 0
         for i in range(1000):
             history.append(run_sim_2())
+            if history[-1][-1] >=80:
+                count += 1
 
         np_arr_history = np.array(history)
         means = np.mean(np_arr_history, 0)
