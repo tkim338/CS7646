@@ -3,6 +3,9 @@ import pandas as pd
 
 
 class DTLearner:
+	def author(self):
+		return 'tkim338'
+
 	def __init__(self, leaf_size=1, verbose=False):
 		self.tree = {}
 		self.leaf_size = leaf_size
