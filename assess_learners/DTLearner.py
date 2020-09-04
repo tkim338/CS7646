@@ -17,7 +17,9 @@ class DTLearner:
 
 	def split(self, X, y):
 		if len(y) <= self.leaf_size:
-			return 0
+			node = {"type": "end_node",
+			        "value": np.median(y)}
+			return node
 		# if depth < 0:
 		# 	return 0
 		#
@@ -43,17 +45,20 @@ class DTLearner:
 		node = {"left": new_left_leaf,
 		        "right": new_right_leaf,
 		        "split_attribute": split_attribute,
-		        "split_value": split_value}
+		        "split_value": split_value,
+		        "type": "split_node"}
 		return node
 
 	def build_tree(self, X, y):
 		self.tree = self.split(X, y)
 
 	def traverse(self, record, node):
-		if node == 0:
-			return 0
-		elif node == 1:
-			return 1
+		if node["type"] == "end_node":
+			return node["value"]
+		# if node == 0:
+		# 	return 0
+		# elif node == 1:
+		# 	return 1
 
 		split_attribute = node["split_attribute"]
 		split_value = node["split_value"]
@@ -111,9 +116,32 @@ def partition_classes(X, y, split_attribute, split_val):
 
 	return X_left, X_right, y_left, y_right
 
-xt = np.array([[4, 2],[6, 4],[7, 7]])
-yt = np.array([1,2,3])
-ls = 1
-dt = DTLearner(leaf_size=ls, verbose=False)
-dt.add_evidence(xt, yt)
-print(dt.query([[7,4]]))
+# xt = np.array([[4, 2],[6, 4],[7, 7]])
+# yt = np.array([1,2,3])
+# ls = 1
+# dt = DTLearner(leaf_size=ls, verbose=False)
+# dt.add_evidence(xt, yt)
+# print(dt.query([[5,4]]))
+
+alldata = np.genfromtxt('D:/Programming/CS7646/assess_learners/Data/Istanbul.csv', delimiter=",")
+# Skip the date column and header row if we're working on Istanbul data
+alldata = alldata[1:, 1:]
+datasize = alldata.shape[0]
+cutoff = int(datasize * 0.6)
+permutation = np.random.permutation(alldata.shape[0])
+col_permutation = np.random.permutation(alldata.shape[1] - 1)
+train_data = alldata[permutation[:cutoff], :]
+# train_x = train_data[:,:-1]
+train_x = train_data[:, col_permutation]
+train_y = train_data[:, -1]
+test_data = alldata[permutation[cutoff:], :]
+# test_x = test_data[:,:-1]
+test_x = test_data[:, col_permutation]
+test_y = test_data[:, -1]
+
+# np.random.seed(seed)
+# random.seed(seed)
+learner = DTLearner(leaf_size=1, verbose=False)
+learner.add_evidence(train_x, train_y)
+insample = learner.query(train_x)
+outsample = learner.query(test_x)

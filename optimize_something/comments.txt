@@ -1,0 +1,37 @@
+<pre>--- Summary ---
+Tests passed: 0 out of 8
+
+--- Details ---
+Test #0: failed 
+Test case description: Wiki example 1
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #1: failed 
+Test case description: Wiki example 2
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #2: failed 
+Test case description: Wiki example 3
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #3: failed 
+Test case description: Wiki example 4
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #4: failed 
+Test case description: MSFT vs HPQ
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #5: failed 
+Test case description: MSFT vs AAPL
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #6: failed 
+Test case description: Wiki example 1 in 2011
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+Test #7: failed 
+Test case description: Year of the HNZ
+AttributeError: module 'signal' has no attribute 'SIGALRM'
+
+</pre>

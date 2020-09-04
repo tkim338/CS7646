@@ -1,77 +1,9 @@
 <pre>--- Summary ---
-Tests passed: 0 out of 18
+Tests passed: 0 out of 1
 
 --- Details ---
 Test #0: failed 
 Description: Test Case 01: Deterministic Tree (group: DTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #1: failed 
-Description: Test Case 02: Deterministic Tree (group: DTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #2: failed 
-Description: Test Case 03: Deterministic Tree (group: DTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #3: failed 
-Description: Test Case 04: Deterministic Tree (group: DTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #4: failed 
-Description: Test Case 01: Random Tree (group: RTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #5: failed 
-Description: Test Case 02: Random Tree (group: RTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #6: failed 
-Description: Test Case 03: Random Tree (group: RTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #7: failed 
-Description: Test Case 04: Random Tree (group: RTLearner)
-AttributeError: Can't pickle local object 'test_learners.<locals>.oneleaf'
-
-Test #8: failed 
-Description: Test Case 01: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #9: failed 
-Description: Test Case 02: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #10: failed 
-Description: Test Case 03: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #11: failed 
-Description: Test Case 04: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #12: failed 
-Description: Test Case 05: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #13: failed 
-Description: Test Case 06: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #14: failed 
-Description: Test Case 07: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #15: failed 
-Description: Test Case 08: Bagging (group: BagLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #16: failed 
-Description: InsaneLearner Test Case (group: InsaneLearner)
-ModuleNotFoundError: No module named 'BagLearner'
-
-Test #17: failed 
-Description: Random Classname Test Case (group: RandomName)
-ModuleNotFoundError: No module named 'BagLearner'
+RecursionError: maximum recursion depth exceeded in comparison
 
 </pre>

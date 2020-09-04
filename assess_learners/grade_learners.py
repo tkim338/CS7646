@@ -240,7 +240,7 @@ learning_test_cases = [
   		  	   		     		  		  		    	 		 		   		 		  
 # Test functon(s)  		  	   		     		  		  		    	 		 		   		 		  
 @pytest.mark.parametrize(  		  	   		     		  		  		    	 		 		   		 		  
-    "description,group,datafile,seed,outputs", learning_test_cases  		  	   		     		  		  		    	 		 		   		 		  
+    "description,group,datafile,seed,outputs", [learning_test_cases[0]]
 )  		  	   		     		  		  		    	 		 		   		 		  
 def test_learners(description, group, datafile, seed, outputs, grader):  		  	   		     		  		  		    	 		 		   		 		  
     """Test ML models returns correct predictions.  		  	   		     		  		  		    	 		 		   		 		  
