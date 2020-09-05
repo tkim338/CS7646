@@ -70,10 +70,20 @@ def find_best_split_feature(X, y):
 
 
 def partition_classes(X, y, split_attribute, split_val):
-	X_left = X[X[:, split_attribute] <= split_val, :]
+	X_left = X[X[:, split_attribute] < split_val, :]
 	X_right = X[X[:, split_attribute] > split_val, :]
-	y_left = y[X[:, split_attribute] <= split_val]
+	y_left = y[X[:, split_attribute] < split_val]
 	y_right = y[X[:, split_attribute] > split_val]
+
+	# values == median should be randomly assigned
+	median_X = X[X[:, split_attribute] == split_val, :]
+	median_Y = y[X[:, split_attribute] == split_val]
+	random_assignment = np.random.choice([1, 0], len(median_Y))
+
+	X_left = np.append(X_left, median_X[random_assignment == 1], axis=0)
+	X_right = np.append(X_right, median_X[random_assignment == 0], axis=0)
+	y_left = np.append(y_left, median_Y[random_assignment == 1])
+	y_right = np.append(y_right, median_Y[random_assignment == 0])
 
 	return X_left, X_right, y_left, y_right
 
@@ -106,44 +116,44 @@ def partition_classes(X, y, split_attribute, split_val):
 # outsample = learner.query(test_x)
 
 
-# inf = open('./Data/ripple.csv')
-# data = np.array(
-# 	[list(map(float, s.strip().split(","))) for s in inf.readlines()]
-# )
-#
-# # compute how much of the data is training and testing
-# train_rows = int(0.6 * data.shape[0])
-# test_rows = data.shape[0] - train_rows
-#
-# # separate out training and testing data
-# train_x = data[:train_rows, 0:-1]
-# train_y = data[:train_rows, -1]
-# test_x = data[train_rows:, 0:-1]
-# test_y = data[train_rows:, -1]
-#
-# print(f"{test_x.shape}")
-# print(f"{test_y.shape}")
-#
-# # create a learner and train it
-# # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
-# learner = DTLearner(verbose=True)
-# learner.add_evidence(train_x, train_y)  # train it
-# print(learner.author())
-#
-# # evaluate in sample
-# pred_y = learner.query(train_x)  # get the predictions
-# rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
-# print()
-# print("In sample results")
-# print(f"RMSE: {rmse}")
-# c = np.corrcoef(pred_y, y=train_y)
-# print(f"corr: {c[0, 1]}")
-#
-# # evaluate out of sample
-# pred_y = learner.query(test_x)  # get the predictions
-# rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
-# print()
-# print("Out of sample results")
-# print(f"RMSE: {rmse}")
-# c = np.corrcoef(pred_y, y=test_y)
-# print(f"corr: {c[0, 1]}")
+inf = open('./Data/ripple.csv')
+data = np.array(
+	[list(map(float, s.strip().split(","))) for s in inf.readlines()]
+)
+
+# compute how much of the data is training and testing
+train_rows = int(0.6 * data.shape[0])
+test_rows = data.shape[0] - train_rows
+
+# separate out training and testing data
+train_x = data[:train_rows, 0:-1]
+train_y = data[:train_rows, -1]
+test_x = data[train_rows:, 0:-1]
+test_y = data[train_rows:, -1]
+
+print(f"{test_x.shape}")
+print(f"{test_y.shape}")
+
+# create a learner and train it
+# learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
+learner = DTLearner(verbose=True)
+learner.add_evidence(train_x, train_y)  # train it
+print(learner.author())
+
+# evaluate in sample
+pred_y = learner.query(train_x)  # get the predictions
+rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
+print()
+print("In sample results")
+print(f"RMSE: {rmse}")
+c = np.corrcoef(pred_y, y=train_y)
+print(f"corr: {c[0, 1]}")
+
+# evaluate out of sample
+pred_y = learner.query(test_x)  # get the predictions
+rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+print()
+print("Out of sample results")
+print(f"RMSE: {rmse}")
+c = np.corrcoef(pred_y, y=test_y)
+print(f"corr: {c[0, 1]}")
