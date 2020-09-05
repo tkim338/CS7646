@@ -29,7 +29,10 @@ import sys
 import numpy as np  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 import LinRegLearner as lrl  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
+import DTLearner
+import RTLearner
+import BagLearner
+
 if __name__ == "__main__":  		  	   		     		  		  		    	 		 		   		 		  
     if len(sys.argv) != 2:  		  	   		     		  		  		    	 		 		   		 		  
         print("Usage: python testlearner.py <filename>")  		  	   		     		  		  		    	 		 		   		 		  
@@ -53,7 +56,10 @@ if __name__ == "__main__":
     print(f"{test_y.shape}")  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
     # create a learner and train it  		  	   		     		  		  		    	 		 		   		 		  
-    learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner  		  	   		     		  		  		    	 		 		   		 		  
+    # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
+    # learner = DTLearner.DTLearner(verbose=True)
+    # learner = RTLearner.RTLearner(verbose=True)
+    learner = BagLearner.BagLearner(learner=DTLearner.DTLearner, kwargs={'leaf_size':10, 'verbose':False}, bags=10)
     learner.add_evidence(train_x, train_y)  # train it  		  	   		     		  		  		    	 		 		   		 		  
     print(learner.author())  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
@@ -73,4 +79,4 @@ if __name__ == "__main__":
     print("Out of sample results")  		  	   		     		  		  		    	 		 		   		 		  
     print(f"RMSE: {rmse}")  		  	   		     		  		  		    	 		 		   		 		  
     c = np.corrcoef(pred_y, y=test_y)  		  	   		     		  		  		    	 		 		   		 		  
-    print(f"corr: {c[0,1]}")  		  	   		     		  		  		    	 		 		   		 		  
+    print(f"corr: {c[0,1]}")
