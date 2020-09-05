@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import math
 
+import util
+
 
 class DTLearner:
 	def author(self):
@@ -54,18 +56,8 @@ class DTLearner:
 
 
 def find_best_split_feature(X, y):
-	num_features = X.shape[1]
-	max_corr = None
-	max_corr_col = None
-	for i in range(0, num_features):
-		curr_corr = np.max(np.abs(np.corrcoef(X[:,i], y)))
-		if max_corr is None:
-			max_corr = curr_corr
-			max_corr_col = i
-		else:
-			if curr_corr > max_corr:
-				max_corr = curr_corr
-				max_corr_col = i
+	correlations = np.corrcoef(X.T, y)[-1, 0:-1]
+	max_corr_col = np.argmax(np.abs(correlations))
 	return max_corr_col, np.median(X[:,max_corr_col])
 
 
@@ -86,6 +78,14 @@ def partition_classes(X, y, split_attribute, split_val):
 	y_right = np.append(y_right, median_Y[random_assignment == 0])
 
 	return X_left, X_right, y_left, y_right
+# def partition_classes(X, y, split_attribute, split_val):
+# 	X_left = X[X[:, split_attribute] <= split_val, :]
+# 	X_right = X[X[:, split_attribute] > split_val, :]
+# 	y_left = y[X[:, split_attribute] <= split_val]
+# 	y_right = y[X[:, split_attribute] > split_val]
+#
+# 	return X_left, X_right, y_left, y_right
+
 
 # xt = np.array([[4, 2],[6, 4],[7, 7]])
 # yt = np.array([1,2,3])
@@ -116,44 +116,48 @@ def partition_classes(X, y, split_attribute, split_val):
 # outsample = learner.query(test_x)
 
 
-inf = open('./Data/ripple.csv')
-data = np.array(
-	[list(map(float, s.strip().split(","))) for s in inf.readlines()]
-)
-
-# compute how much of the data is training and testing
-train_rows = int(0.6 * data.shape[0])
-test_rows = data.shape[0] - train_rows
-
-# separate out training and testing data
-train_x = data[:train_rows, 0:-1]
-train_y = data[:train_rows, -1]
-test_x = data[train_rows:, 0:-1]
-test_y = data[train_rows:, -1]
-
-print(f"{test_x.shape}")
-print(f"{test_y.shape}")
-
-# create a learner and train it
-# learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
-learner = DTLearner(verbose=True)
-learner.add_evidence(train_x, train_y)  # train it
-print(learner.author())
-
-# evaluate in sample
-pred_y = learner.query(train_x)  # get the predictions
-rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
-print()
-print("In sample results")
-print(f"RMSE: {rmse}")
-c = np.corrcoef(pred_y, y=train_y)
-print(f"corr: {c[0, 1]}")
-
-# evaluate out of sample
-pred_y = learner.query(test_x)  # get the predictions
-rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
-print()
-print("Out of sample results")
-print(f"RMSE: {rmse}")
-c = np.corrcoef(pred_y, y=test_y)
-print(f"corr: {c[0, 1]}")
+# inf = open('./Data/Istanbul.csv')
+# # data = np.array(
+# # 	[list(map(float, s.strip().split(","))) for s in inf.readlines()]
+# # )
+# f = util.get_learner_data_file('Istanbul.csv')
+# data = np.genfromtxt(f, delimiter=",")
+# # Skip the date column and header row if we're working on Istanbul data
+# data = data[1:, 1:]
+#
+# # compute how much of the data is training and testing
+# train_rows = int(0.6 * data.shape[0])
+# test_rows = data.shape[0] - train_rows
+#
+# # separate out training and testing data
+# train_x = data[:train_rows, 0:-1]
+# train_y = data[:train_rows, -1]
+# test_x = data[train_rows:, 0:-1]
+# test_y = data[train_rows:, -1]
+#
+# print(f"{test_x.shape}")
+# print(f"{test_y.shape}")
+#
+# # create a learner and train it
+# # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
+# learner = DTLearner(verbose=True)
+# learner.add_evidence(train_x, train_y)  # train it
+# print(learner.author())
+#
+# # evaluate in sample
+# pred_y = learner.query(train_x)  # get the predictions
+# rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
+# print()
+# print("In sample results")
+# print(f"RMSE: {rmse}")
+# c = np.corrcoef(pred_y, y=train_y)
+# print(f"corr: {c[0, 1]}")
+#
+# # evaluate out of sample
+# pred_y = learner.query(test_x)  # get the predictions
+# rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+# print()
+# print("Out of sample results")
+# print(f"RMSE: {rmse}")
+# c = np.corrcoef(pred_y, y=test_y)
+# print(f"corr: {c[0, 1]}")
