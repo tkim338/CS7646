@@ -57,11 +57,8 @@ class RTLearner:
 		return Y
 
 def find_best_split_feature(X, y):
-	correlations = np.corrcoef(X.T, y)[-1, 0:-1]
-	if all(np.isnan(correlations)):
-		max_corr_col = np.random.randint(0, np.shape(X)[1])
-	else:
-		max_corr_col = np.nanargmax(np.abs(correlations))
+	num_features = X.shape[1]
+	max_corr_col = np.random.randint(0, num_features)
 	return max_corr_col, np.median(X[:,max_corr_col])
 
 def partition_classes(X, y, split_attribute, split_val):
