@@ -24,13 +24,10 @@ class DTLearner:
 
 		split_attribute, split_value = find_best_split_feature(X, y)
 		X_left, X_right, y_left, y_right = partition_classes(X, y, split_attribute, split_value)
-		# if len(y_right) == 0: # cases in which median == max_val
-		# 	split_value -= 1
-		# 	X_left, X_right, y_left, y_right = partition_classes(X, y, split_attribute, split_value)
+
 		if len(y_left) == 0 or len(y_right) == 0:
 			self.tree[node_index] = [None, None, None, None, np.median(y)]
 			return
-
 
 		self.tree = np.append(self.tree, np.empty((1,5)), axis=0)
 		left_node_index = len(self.tree)-1
@@ -61,7 +58,6 @@ class DTLearner:
 			Y.append(self.traverse(x, 0))
 		return Y
 
-
 def find_best_split_feature(X, y):
 	correlations = np.corrcoef(X.T, y)[-1, 0:-1]
 	if all(np.isnan(correlations)):
@@ -70,24 +66,6 @@ def find_best_split_feature(X, y):
 		max_corr_col = np.nanargmax(np.abs(correlations))
 	return max_corr_col, np.median(X[:,max_corr_col])
 
-
-# def partition_classes(X, y, split_attribute, split_val):
-	# X_left = X[X[:, split_attribute] < split_val, :]
-	# X_right = X[X[:, split_attribute] > split_val, :]
-	# y_left = y[X[:, split_attribute] < split_val]
-	# y_right = y[X[:, split_attribute] > split_val]
-	#
-	# # values == median should be randomly assigned
-	# median_X = X[X[:, split_attribute] == split_val, :]
-	# median_Y = y[X[:, split_attribute] == split_val]
-	# random_assignment = np.random.choice([1, 0], len(median_Y))
-	#
-	# X_left = np.append(X_left, median_X[random_assignment == 1], axis=0)
-	# X_right = np.append(X_right, median_X[random_assignment == 0], axis=0)
-	# y_left = np.append(y_left, median_Y[random_assignment == 1])
-	# y_right = np.append(y_right, median_Y[random_assignment == 0])
-	#
-	# return X_left, X_right, y_left, y_right
 def partition_classes(X, y, split_attribute, split_val):
 	X_left = X[X[:, split_attribute] <= split_val, :]
 	X_right = X[X[:, split_attribute] > split_val, :]
@@ -103,44 +81,44 @@ def partition_classes(X, y, split_attribute, split_val):
 # test_y = np.array([1,2,3])
 
 
-f = util.get_learner_data_file('Istanbul.csv')
-# f = util.get_learner_data_file('ripple.csv')
-data = np.genfromtxt(f, delimiter=",")
-data = data[1:, 1:]
-
-# compute how much of the data is training and testing
-train_rows = int(0.6 * data.shape[0])
-test_rows = data.shape[0] - train_rows
-
-# separate out training and testing data
-train_x = data[:train_rows, 0:-1]
-train_y = data[:train_rows, -1]
-test_x = data[train_rows:, 0:-1]
-test_y = data[train_rows:, -1]
-
-print(f"{test_x.shape}")
-print(f"{test_y.shape}")
-
-# create a learner and train it
-# learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
-learner = DTLearner(verbose=True)
-learner.add_evidence(train_x, train_y)  # train it
-print(learner.author())
-
-# evaluate in sample
-pred_y = learner.query(train_x)  # get the predictions
-rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
-print()
-print("In sample results")
-print(f"RMSE: {rmse}")
-c = np.corrcoef(pred_y, y=train_y)
-print(f"corr: {c[0, 1]}")
-
-# evaluate out of sample
-pred_y = learner.query(test_x)  # get the predictions
-rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
-print()
-print("Out of sample results")
-print(f"RMSE: {rmse}")
-c = np.corrcoef(pred_y, y=test_y)
-print(f"corr: {c[0, 1]}")
+# f = util.get_learner_data_file('Istanbul.csv')
+# # f = util.get_learner_data_file('ripple.csv')
+# data = np.genfromtxt(f, delimiter=",")
+# data = data[1:, 1:]
+#
+# # compute how much of the data is training and testing
+# train_rows = int(0.6 * data.shape[0])
+# test_rows = data.shape[0] - train_rows
+#
+# # separate out training and testing data
+# train_x = data[:train_rows, 0:-1]
+# train_y = data[:train_rows, -1]
+# test_x = data[train_rows:, 0:-1]
+# test_y = data[train_rows:, -1]
+#
+# print(f"{test_x.shape}")
+# print(f"{test_y.shape}")
+#
+# # create a learner and train it
+# # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
+# learner = DTLearner(verbose=True)
+# learner.add_evidence(train_x, train_y)  # train it
+# print(learner.author())
+#
+# # evaluate in sample
+# pred_y = learner.query(train_x)  # get the predictions
+# rmse = math.sqrt(((train_y - pred_y) ** 2).sum() / train_y.shape[0])
+# print()
+# print("In sample results")
+# print(f"RMSE: {rmse}")
+# c = np.corrcoef(pred_y, y=train_y)
+# print(f"corr: {c[0, 1]}")
+#
+# # evaluate out of sample
+# pred_y = learner.query(test_x)  # get the predictions
+# rmse = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+# print()
+# print("Out of sample results")
+# print(f"RMSE: {rmse}")
+# c = np.corrcoef(pred_y, y=test_y)
+# print(f"corr: {c[0, 1]}")
