@@ -35,13 +35,14 @@ import BagLearner
 import InsaneLearner
 
 if __name__ == "__main__":  		  	   		     		  		  		    	 		 		   		 		  
-    if len(sys.argv) != 2:  		  	   		     		  		  		    	 		 		   		 		  
-        print("Usage: python testlearner.py <filename>")  		  	   		     		  		  		    	 		 		   		 		  
-        sys.exit(1)  		  	   		     		  		  		    	 		 		   		 		  
-    inf = open(sys.argv[1])  		  	   		     		  		  		    	 		 		   		 		  
-    data = np.array(  		  	   		     		  		  		    	 		 		   		 		  
-        [list(map(float, s.strip().split(","))) for s in inf.readlines()]  		  	   		     		  		  		    	 		 		   		 		  
-    )  		  	   		     		  		  		    	 		 		   		 		  
+    if len(sys.argv) != 2:
+        print("Usage: python testlearner.py <filename>")
+        sys.exit(1)
+
+    data = np.genfromtxt(sys.argv[1], delimiter=",")
+    # Skip the date column and header row if we're working on Istanbul data
+    if "Istanbul.csv" in sys.argv[1]:
+        data = data[1:, 1:]
   		  	   		     		  		  		    	 		 		   		 		  
     # compute how much of the data is training and testing  		  	   		     		  		  		    	 		 		   		 		  
     train_rows = int(0.6 * data.shape[0])  		  	   		     		  		  		    	 		 		   		 		  
@@ -59,9 +60,9 @@ if __name__ == "__main__":
     # create a learner and train it  		  	   		     		  		  		    	 		 		   		 		  
     # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
     # learner = DTLearner.DTLearner(verbose=True)
-    learner = RTLearner.RTLearner(verbose=True)
+    # learner = RTLearner.RTLearner(verbose=True)
     # learner = BagLearner.BagLearner(learner=DTLearner.DTLearner, kwargs={'leaf_size':10, 'verbose':False}, bags=10)
-    # learner = InsaneLearner.InsaneLearner(verbose=False)
+    learner = InsaneLearner.InsaneLearner(verbose=False)
     learner.add_evidence(train_x, train_y)  # train it  		  	   		     		  		  		    	 		 		   		 		  
     print(learner.author())  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
