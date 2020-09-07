@@ -61,8 +61,8 @@ if __name__ == "__main__":
     # learner = lrl.LinRegLearner(verbose=True)  # create a LinRegLearner
     # learner = DTLearner.DTLearner(verbose=True)
     # learner = RTLearner.RTLearner(verbose=True)
-    # learner = BagLearner.BagLearner(learner=DTLearner.DTLearner, kwargs={'leaf_size':10, 'verbose':False}, bags=10)
-    learner = InsaneLearner.InsaneLearner(verbose=False)
+    learner = BagLearner.BagLearner(learner=DTLearner.DTLearner, kwargs={'leaf_size':10, 'verbose':False}, bags=10)
+    # learner = InsaneLearner.InsaneLearner(verbose=False)
     learner.add_evidence(train_x, train_y)  # train it  		  	   		     		  		  		    	 		 		   		 		  
     print(learner.author())  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  

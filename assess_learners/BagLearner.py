@@ -1,9 +1,5 @@
 import numpy as np
 
-import DTLearner
-import RTLearner
-import LinRegLearner
-
 class BagLearner:
 	def author(self):
 		return 'tkim338'
