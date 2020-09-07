@@ -14,15 +14,14 @@ class BagLearner:
 	def add_evidence(self, x_train, y_train):
 		bag_size = len(y_train)
 		num_features = x_train.shape[1]
-		x_subset = np.empty((0, num_features))
-		y_subset = np.empty((0, 1))
-
-		for i in range(0, bag_size):
-			rand_ind = np.random.randint(0, bag_size)
-			x_subset = np.append(x_subset, [x_train[rand_ind, :]], axis=0)
-			y_subset = np.append(y_subset, y_train[rand_ind])
 
 		for learner in self.learners:
+			x_subset = np.empty((0, num_features))
+			y_subset = np.empty((0, 1))
+			for i in range(0, bag_size):
+				rand_ind = np.random.randint(0, bag_size)
+				x_subset = np.append(x_subset, [x_train[rand_ind, :]], axis=0)
+				y_subset = np.append(y_subset, y_train[rand_ind])
 			learner.add_evidence(x_subset, y_subset)
 
 	def query(self, Xtest):
