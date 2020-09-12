@@ -1,26 +1,90 @@
+import math
+
 import numpy as np
-from LinRegLearner import LinRegLearner
-from DTLearner import DTLearner
 
-# x = np.random.random((100, 5)) * 10
-# y1 = np.array([x[:, 0] ** 2]).T
-# y2 = np.random.random((100, 1)) * 1
-#
-# lr = LinRegLearner()
-# dt = DTLearner()
-#
-# lr.add_evidence(x,y1)
-# dt.add_evidence(x,y2)
+import DTLearner as dt
+import LinRegLearner as lrl
+from gen_data import best_4_dt, best_4_lin_reg
 
 
-# x0 = np.zeros((100, 2))
-# y0 = np.random.random(size=(100,)) * 200 - 100
-# x1 = np.random.random((100, 2)) * 10
-# y1 = x1[:, 0] ** 2
+# compare two learners' rmse out of sample  		  	   		     		  		  		    	 		 		   		 		  
+def compare_os_rmse(learner1, learner2, x, y):
+	# compute how much of the data is training and testing
+	train_rows = int(math.floor(0.6 * x.shape[0]))
+	test_rows = x.shape[0] - train_rows
 
-x0 = np.zeros((100, 2))
-y0 = np.random.random(size=(100,)) * 200 - 100
-x1 = np.random.random((100, 2)) * 10
-y1 = np.random.random((100,)) * 1
+	# separate out training and testing data
+	train = np.random.choice(x.shape[0], size=train_rows, replace=False)
+	test = np.setdiff1d(np.array(range(x.shape[0])), train)
+	train_x = x[train, :]
+	train_y = y[train]
+	test_x = x[test, :]
+	test_y = y[test]
 
-print()
+	# train the learners
+	learner1.add_evidence(train_x, train_y)  # train it
+	learner2.add_evidence(train_x, train_y)  # train it
+
+	# evaluate learner1 out of sample
+	pred_y = learner1.query(test_x)  # get the predictions
+	rmse1 = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+
+	# evaluate learner2 out of sample
+	pred_y = learner2.query(test_x)  # get the predictions
+	rmse2 = math.sqrt(((test_y - pred_y) ** 2).sum() / test_y.shape[0])
+
+	return rmse1, rmse2
+
+
+def test_code(s = 100):
+	"""
+	Performs a test of your code and prints the results
+	"""
+	# create two learners and get data
+	lrlearner = lrl.LinRegLearner(verbose=False)
+	dtlearner = dt.DTLearner(verbose=False, leaf_size=1)
+	x, y = best_4_lin_reg(s)
+
+	# compare the two learners
+	rmse_lr, rmse_dt = compare_os_rmse(lrlearner, dtlearner, x, y)
+
+	# share results
+	print()
+	print("best_4_lin_reg() results")
+	print(f"RMSE LR    : {rmse_lr}")
+	print(f"RMSE DT    : {rmse_dt}")
+	if rmse_lr < 0.9 * rmse_dt:
+		print("LR < 0.9 DT:  pass")
+	else:
+		print("LR >= 0.9 DT:  fail")
+	print
+
+	# get data that is best for a random tree
+	lrlearner = lrl.LinRegLearner(verbose=False)
+	dtlearner = dt.DTLearner(verbose=False, leaf_size=1)
+	x, y = best_4_dt(s)
+
+	# compare the two learners
+	rmse_lr, rmse_dt = compare_os_rmse(lrlearner, dtlearner, x, y)
+
+	# share results
+	print()
+	print("best_4_dt() results")
+	print(f"RMSE LR    : {rmse_lr}")
+	print(f"RMSE DT    : {rmse_dt}")
+	if rmse_dt < 0.9 * rmse_lr:
+		print("DT < 0.9 LR:  pass")
+		return 1
+	else:
+		print("DT >= 0.9 LR:  fail")
+		return 0
+	print
+
+
+if __name__ == "__main__":
+	results = []
+	for i in range(1,100):
+		seed = np.random.randint(0, 1000)
+		results.append(test_code(seed))
+	print(results)
+	print(np.sum(results))
