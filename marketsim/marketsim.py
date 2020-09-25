@@ -218,7 +218,7 @@ if __name__ == "__main__":
     # df = get_data(['$SPX'], [dt.datetime(2012, 8, 27), dt.datetime(2012, 8, 24), dt.datetime(2012, 8, 25)], addSPY=False)
     # print(df)
 
-    # of = "./orders/orders2.csv"
-    # sv = 1000000
-    # portvals = compute_portvals(orders_file=of, start_val=sv)
-    # print(portvals[portvals.columns[0]][-1])
+    of = "./orders/orders2.csv"
+    sv = 1000000
+    portvals = compute_portvals(orders_file=of, start_val=sv)
+    print(portvals[portvals.columns[0]][-1])
