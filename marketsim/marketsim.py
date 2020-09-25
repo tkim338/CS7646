@@ -218,33 +218,7 @@ if __name__ == "__main__":
     # df = get_data(['$SPX'], [dt.datetime(2012, 8, 27), dt.datetime(2012, 8, 24), dt.datetime(2012, 8, 25)], addSPY=False)
     # print(df)
 
-    of = "./orders/orders2.csv"
-    sv = 1000000
-    portvals = compute_portvals(orders_file=of, start_val=sv)
-    print(portvals[portvals.columns[0]][-1])
-
-    def get_port_value(allocations):
-        portfolio_value = 0 * prices_all["SPY"]
-        for i in range(len(syms)):
-            curr_sym = syms[i]
-            curr_allocation = allocations[i]
-            for t in range(len(prices_all)):
-                portfolio_value[t] += prices_all[curr_sym][t]/prices_all[curr_sym][0] * curr_allocation
-        return portfolio_value
-
-    def get_port_return_daily(allocations):
-        portfolio_return = 0 * prices_all["SPY"]
-        for i in range(len(syms)):
-            curr_sym = syms[i]
-            curr_allocation = allocations[i]
-            for t in range(1, len(prices_all)):
-                portfolio_return[t] += ((prices_all[curr_sym][t]/prices_all[curr_sym][t-1]) - 1) * curr_allocation
-        return portfolio_return
-
-    def compute_sharpe_ratio(allocations):
-        R_b = 0  # risk-free return
-        port_history = get_port_return_daily(allocations)[1:]
-        sigma_a = np.std(port_history)
-        R_a = port_history
-        S_a = np.mean(R_a - R_b) / sigma_a
-        return S_a * np.sqrt(252)
+    # of = "./orders/orders2.csv"
+    # sv = 1000000
+    # portvals = compute_portvals(orders_file=of, start_val=sv)
+    # print(portvals[portvals.columns[0]][-1])
