@@ -20,8 +20,7 @@ if __name__ == "__main__":
 	bm_values = marketsimcode.compute_portvals(orders_df=bm_df, start_val=100000, commission=0, impact=0)
 	bm_cum, bm_std, bm_mean = tos.compute_statistics(bm_values)
 
-	# df_temp = pd.concat([pd.DataFrame(data=values/values[0], index=df.index.values), pd.DataFrame(data=bm_values/bm_values[0], index=df.index.values)], axis=1, sort=False)
-	df_temp = pd.concat([tos_values/tos_values.iloc[0,:], bm_values/bm_values.iloc[0,:]], axis=1, sort=False)
+	df_temp = pd.concat([tos_values/tos_values.iloc[0, :], bm_values/bm_values.iloc[0, :]], axis=1, sort=False)
 	df_temp.columns = ['theoretically optimal portfolio', 'benchmark']
 
 	# -Benchmark (see definition above) normalized to 1.0 at the start: Green line
@@ -29,12 +28,13 @@ if __name__ == "__main__":
 	val_plot = df_temp.plot(style=['-r', '-g'], title='Theoretically Optimal Portfolio versus benchmark ('+sym+')', figsize=(10,8))
 	val_plot.set_xlabel('Date')
 	val_plot.set_ylabel('Normalized Value')
+	val_plot.grid(b=True, which='both', axis='both')
 	plt.savefig('TOS.png')
-	# plt.show()
+
 	# -Cumulative return of the benchmark and portfolio
-	print('Cumulative return of the benchmark: ', bm_cum,' and portfolio: ', cum)
+	print('Cumulative return of the benchmark: ', bm_cum, ' and portfolio: ', cum)
 	# -Stdev of daily returns of benchmark and portfolio
-	print('Stdev of daily returns of benchmark: ', bm_std,' and portfolio: ', std)
+	print('Stdev of daily returns of benchmark: ', bm_std, ' and portfolio: ', std)
 	# -Mean of daily returns of benchmark and portfolio
 	print('Mean of daily returns of benchmark: ', bm_mean, ' and portfolio: ', mean)
 

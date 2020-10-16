@@ -41,8 +41,8 @@ def benchmark(sd, ed, sv=100000):
 def compute(symbol, sd, ed, sv): # symbol, start date, end date, start value of portfolio
 	all_dates = date_list(sd, ed)
 	stock_data = get_data([symbol], all_dates, addSPY=False)
-	stock_data = stock_data.fillna(method='ffill')
-	stock_data = stock_data.fillna(method='bfill')
+	# stock_data = stock_data.fillna(method='ffill')
+	# stock_data = stock_data.fillna(method='bfill')
 	prev_price = stock_data[symbol][all_dates[0]]
 	prev_date = all_dates[0]
 	current_position = 0
@@ -51,32 +51,33 @@ def compute(symbol, sd, ed, sv): # symbol, start date, end date, start value of 
 
 	for date in all_dates:
 		price = stock_data[symbol][date]
-		delta = price - prev_price
-		prev_trade = 0
-		if delta > 0:
-			if current_position != 1000:
-				prev_trade = 1000 - current_position
-				current_position = 1000
-			else:
-				prev_trade = 0
-				current_position = -1000
-		elif delta < 0:
-			if current_position != -1000:
-				prev_trade = -1000 - current_position
-				current_position = -1000
-			else:
-				prev_trade = 0
-				current_position = -1000
-		# elif delta == 0:
-		# 	prev_trade = 0 - current_position
-		# 	current_position = 0
+		if not np.isnan(price):
+			delta = price - prev_price
+			prev_trade = 0
+			if delta > 0:
+				if current_position != 1000:
+					prev_trade = 1000 - current_position
+					current_position = 1000
+				else:
+					prev_trade = 0
+					current_position = 1000
+			elif delta < 0:
+				if current_position != -1000:
+					prev_trade = -1000 - current_position
+					current_position = -1000
+				else:
+					prev_trade = 0
+					current_position = -1000
+			# elif delta == 0:
+			# 	prev_trade = 0 - current_position
+			# 	current_position = 0
 
-		if prev_trade != 0:
-			output['Date'].append(prev_date)
-			output['Trade'].append(prev_trade)
+			if prev_trade != 0:
+				output['Date'].append(prev_date)
+				output['Trade'].append(prev_trade)
 
-		prev_price = price
-		prev_date = date
+			prev_price = price
+			prev_date = date
 
 	# cover final position
 	output['Date'].append(prev_date)
@@ -109,9 +110,13 @@ def testPolicy(symbol, sd, ed, sv): # symbol, start date, end date, start value 
 	return df_trades
 
 if __name__ == "__main__":
-	print('main code here')
-	df_test = testPolicy(symbol="JPM", sd=dt.datetime(2009, 1, 1), ed=dt.datetime(2009, 1, 7), sv=100000)
+	df_test = testPolicy(symbol="JPM", sd=dt.datetime(2009, 3, 1), ed=dt.datetime(2009, 3, 15), sv=100000)
 	test_values = marketsimcode.compute_portvals(orders_df=df_test, start_val=100000, commission=0, impact=0)
+	stock_data = get_data(['JPM'], date_list(dt.datetime(2009, 3, 1), dt.datetime(2009, 3, 15)), addSPY=False)
+
+	df_test.columns = ['trades']
+	stock_data.columns = ['price']
+	df_temp = pd.concat([df_test, stock_data], axis=1, sort=False)
 
 	cum, std, mean = compute_statistics(test_values)
 	print(cum)
