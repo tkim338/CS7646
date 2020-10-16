@@ -51,41 +51,35 @@ def compute(symbol, sd, ed, sv): # symbol, start date, end date, start value of 
 
 	for date in all_dates:
 		price = stock_data[symbol][date]
-		if prev_price and not np.isnan(price):
-			delta = price - prev_price
-			if delta > 0:
+		delta = price - prev_price
+		prev_trade = 0
+		if delta > 0:
+			if current_position != 1000:
 				prev_trade = 1000 - current_position
 				current_position = 1000
-			elif delta < 0:
+			else:
+				prev_trade = 0
+				current_position = -1000
+		elif delta < 0:
+			if current_position != -1000:
 				prev_trade = -1000 - current_position
 				current_position = -1000
 			else:
-				prev_trade = 0 - current_position
-				current_position = 0
+				prev_trade = 0
+				current_position = -1000
+		# elif delta == 0:
+		# 	prev_trade = 0 - current_position
+		# 	current_position = 0
 
-			if prev_trade != 0:
-				# output['Date'].append(prev_date.strftime('%Y-%m-%d'))
-				output['Date'].append(prev_date)
-				# output['Symbol'].append(symbol)
-				# if prev_trade > 0:
-				# 	output['Order'].append('BUY')
-				# else:
-				# 	output['Order'].append('SELL')
-				# output['Shares'].append(np.abs(prev_trade))
-				output['Trade'].append(prev_trade)
+		if prev_trade != 0:
+			output['Date'].append(prev_date)
+			output['Trade'].append(prev_trade)
 
 		prev_price = price
 		prev_date = date
 
 	# cover final position
-	# output['Date'].append(prev_date.strftime('%Y-%m-%d'))
 	output['Date'].append(prev_date)
-	# output['Symbol'].append(symbol)
-	# if current_position > 0:
-	# 	output['Order'].append('SELL')
-	# else:
-	# 	output['Order'].append('BUY')
-	# output['Shares'].append(np.abs(current_position))
 	output['Trade'].append(-current_position)
 	current_position = 0
 
@@ -116,7 +110,7 @@ def testPolicy(symbol, sd, ed, sv): # symbol, start date, end date, start value 
 
 if __name__ == "__main__":
 	print('main code here')
-	df_test = testPolicy(symbol="JPM", sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2010, 1, 7), sv=100000)
+	df_test = testPolicy(symbol="JPM", sd=dt.datetime(2009, 1, 1), ed=dt.datetime(2009, 1, 7), sv=100000)
 	test_values = marketsimcode.compute_portvals(orders_df=df_test, start_val=100000, commission=0, impact=0)
 
 	cum, std, mean = compute_statistics(test_values)
