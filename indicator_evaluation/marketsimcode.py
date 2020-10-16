@@ -17,9 +17,8 @@ def compute_portvals(
 ):
 
 	# orders_df = pd.read_csv(orders_file)
-
-	start_date = dt.datetime.strptime(orders_df["Date"].min(), '%Y-%m-%d')
-	end_date = dt.datetime.strptime(orders_df["Date"].max(), '%Y-%m-%d')
+	start_date = orders_df.index.min()
+	end_date = orders_df.index.max()
 	day_increment = dt.timedelta(days=1)
 	all_dates = []
 	date_i = start_date
@@ -28,30 +27,31 @@ def compute_portvals(
 		date_i += day_increment
 
 	portvals = get_data(['$SPX'], pd.date_range(start_date, end_date), addSPY=False)
+	portvals.columns = ['value']
 	holdings = {'cash': start_val}
 
 	retrieved_data = {}
 
+	def get_stock_data(symbol, date):
+		if symbol not in retrieved_data:
+			retrieved_data[symbol] = get_data([symbol], all_dates, addSPY=False)
+		sym_val = retrieved_data[symbol][symbol][date]
+		return sym_val
+
 	def update_holdings(date):
-		curr_orders = orders_df.loc[orders_df['Date'] == date.strftime('%Y-%m-%d')]
-		for index, row in curr_orders.iterrows():
-			sym_val = get_data([row['Symbol']], [date], addSPY=False)[row['Symbol']].iloc[0]
+		if date not in orders_df.index:
+			return holdings
+		curr_orders = orders_df.loc[date]
+		sym = orders_df.columns[0]
+		for trade in curr_orders:
+			sym_val = get_stock_data(sym, date)
 			holdings['cash'] -= commission
 
-			if row['Symbol'] in holdings:
-				if row['Order'] == 'BUY':
-					holdings[row['Symbol']] += row['Shares']
-					holdings['cash'] -= row['Shares'] * sym_val * (1 + impact)
-				else:  # sell
-					holdings[row['Symbol']] -= row['Shares']
-					holdings['cash'] += row['Shares'] * sym_val * (1 - impact)
+			if sym in holdings:
+				holdings[sym] += trade
 			else:
-				if row['Order'] == 'BUY':
-					holdings[row['Symbol']] = row['Shares']
-					holdings['cash'] -= row['Shares'] * sym_val * (1 + impact)
-				else:  # sell
-					holdings[row['Symbol']] = -row['Shares']
-					holdings['cash'] += row['Shares'] * sym_val * (1 - impact)
+				holdings[sym] = trade
+			holdings['cash'] -= trade * sym_val * (1 + impact)
 		return holdings
 
 	def get_portfolio_value(curr_holdings, date):
@@ -60,9 +60,7 @@ def compute_portvals(
 			if key == 'cash':
 				pv += curr_holdings[key]
 			else:
-				if key not in retrieved_data:
-					retrieved_data[key] = get_data([key], all_dates, addSPY=False)
-				sym_val = retrieved_data[key][key][date]
+				sym_val = get_stock_data(key, date)
 				pv += sym_val * holdings[key]
 		return pv
 
@@ -78,7 +76,7 @@ def compute_portvals(
 			curr_pv = get_portfolio_value(holdings, curr_date)
 
 			# update portfolio value with today's value
-			portvals['$SPX'][curr_date] = curr_pv
+			portvals['value'][curr_date] = curr_pv
 		else:
 			portvals = portvals.drop(curr_date)
 

@@ -1,10 +1,9 @@
 import datetime as dt
 import os
-
 import numpy as np
-
 import pandas as pd
 from util import get_data, plot_data
+import marketsimcode
 
 def author():
 	return 'tkim338'
@@ -19,51 +18,39 @@ def date_list(sd, ed):
 	return all_dates
 
 def benchmark(sd, ed, sv=100000):
+	benchmark_symbol = 'JPM'
 	all_dates = date_list(sd, ed)
-	stock_data = get_data(['JPM'], all_dates, addSPY=False)
-	stock_data = stock_data.fillna(method='ffill')
-	stock_data = stock_data.fillna(method='bfill')
+	stock_data = get_data([benchmark_symbol], all_dates, addSPY=False)
 
-	output = {'date': [], 'value': []}
-	daily_return = []
-	prev_value = sv
-	new_value = sv
-	prev_price = stock_data['JPM'][all_dates[0]]
-	for date in all_dates:
-		price = stock_data['JPM'][date]
-		delta = price - prev_price
-		output['date'].append(date)
-		new_value += delta * 1000
-		output['value'].append(new_value)
-		daily_return.append((new_value - prev_value) / prev_value)
-		prev_value = new_value
-		prev_price = price
+	buy_date = stock_data[benchmark_symbol].first_valid_index()
+	sell_date = stock_data[benchmark_symbol].last_valid_index()
 
-	df_benchmark = pd.DataFrame(data=output, index=output['date'], columns=['value'])
+	# output = {'Date': [], 'Symbol': [], 'Order': [], 'Shares':[]}
+	output = {'Date': [], 'Trade':[]}
+	# output['Date'] = [buy_date.strftime('%Y-%m-%d'), sell_date.strftime('%Y-%m-%d')]
+	output['Date'] = [buy_date, sell_date]
+	# output['Symbol'] = [benchmark_symbol, benchmark_symbol]
+	# output['Order'] = ['BUY', 'SELL']
+	# output['Shares'] = [1000, 0]
+	output['Trade'] = [1000, -1000]
 
-	cum_return = (new_value - sv) / sv
-	stdev_daily_return = np.std(daily_return)
-	mean_daily_return = np.mean(daily_return)
+	df_benchmark = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[benchmark_symbol])
 
-	return df_benchmark, cum_return, stdev_daily_return, mean_daily_return, output['value']
+	return df_benchmark
 
 def compute(symbol, sd, ed, sv): # symbol, start date, end date, start value of portfolio
 	all_dates = date_list(sd, ed)
 	stock_data = get_data([symbol], all_dates, addSPY=False)
 	stock_data = stock_data.fillna(method='ffill')
 	stock_data = stock_data.fillna(method='bfill')
-
 	prev_price = stock_data[symbol][all_dates[0]]
 	prev_date = all_dates[0]
 	current_position = 0
-	output = {'date': [], 'trades':[]}
-	daily_return = []
-	prev_value = sv
-	new_value = sv
-	values = [sv]
+	# output = {'Date': [], 'Symbol': [], 'Order': [], 'Shares':[]}
+	output = {'Date': [], 'Trade': []}
+
 	for date in all_dates:
 		price = stock_data[symbol][date]
-		delta = 0
 		if prev_price and not np.isnan(price):
 			delta = price - prev_price
 			if delta > 0:
@@ -76,28 +63,52 @@ def compute(symbol, sd, ed, sv): # symbol, start date, end date, start value of 
 				prev_trade = 0 - current_position
 				current_position = 0
 
-			output['date'].append(prev_date)
-			output['trades'].append(prev_trade)
+			if prev_trade != 0:
+				# output['Date'].append(prev_date.strftime('%Y-%m-%d'))
+				output['Date'].append(prev_date)
+				# output['Symbol'].append(symbol)
+				# if prev_trade > 0:
+				# 	output['Order'].append('BUY')
+				# else:
+				# 	output['Order'].append('SELL')
+				# output['Shares'].append(np.abs(prev_trade))
+				output['Trade'].append(prev_trade)
 
-		new_value += np.abs(delta) * 1000
-		values.append(new_value)
-		daily_return.append((new_value - prev_value) / prev_value)
-		prev_value = new_value
 		prev_price = price
 		prev_date = date
 
-	# neutral final position
-	output['date'].append(prev_date)
-	output['trades'].append(0 - current_position)
+	# cover final position
+	# output['Date'].append(prev_date.strftime('%Y-%m-%d'))
+	output['Date'].append(prev_date)
+	# output['Symbol'].append(symbol)
+	# if current_position > 0:
+	# 	output['Order'].append('SELL')
+	# else:
+	# 	output['Order'].append('BUY')
+	# output['Shares'].append(np.abs(current_position))
+	output['Trade'].append(-current_position)
 	current_position = 0
 
-	cum_return = (new_value - sv) / sv
+	df_trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
+
+	return df_trades
+
+def compute_statistics(port_val):
+	port_val_list = port_val.values.tolist()
+
+	daily_return = []
+	prev_value = port_val[0][0]
+
+	for pv in port_val_list:
+		value = pv[0]
+		daily_return.append((value - prev_value) / prev_value)
+		prev_value = value
+
+	cum_return = (port_val_list[-1][0] - port_val_list[0][0]) / port_val_list[0][0]
 	stdev_daily_return = np.std(daily_return)
 	mean_daily_return = np.mean(daily_return)
 
-	df_trades = pd.DataFrame(data=output, index=output['date'], columns=['trades'])
-
-	return df_trades, cum_return, stdev_daily_return, mean_daily_return, values
+	return cum_return, stdev_daily_return, mean_daily_return
 
 def testPolicy(symbol, sd, ed, sv): # symbol, start date, end date, start value of portfolio
 	df_trades = compute(symbol, sd, ed, sv)
@@ -105,11 +116,10 @@ def testPolicy(symbol, sd, ed, sv): # symbol, start date, end date, start value 
 
 if __name__ == "__main__":
 	print('main code here')
-	#testPolicy(symbol="AAPL", sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2011,12,31), sv=100000)
-	testPolicy(symbol="AAPL", sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2010, 1, 7), sv=100000)
+	df_test = testPolicy(symbol="JPM", sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2010, 1, 7), sv=100000)
+	test_values = marketsimcode.compute_portvals(orders_df=df_test, start_val=100000, commission=0, impact=0)
 
-	df, cum, std, mean, values = compute(symbol="AAPL", sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2010, 1, 7), sv=100000)
-	# df, cum, std, mean, values = benchmark(sd=dt.datetime(2010, 1, 1), ed=dt.datetime(2010, 1, 7), sv=100000)
+	cum, std, mean = compute_statistics(test_values)
 	print(cum)
 	print(std)
 	print(mean)
