@@ -7,6 +7,9 @@ import indicators
 import TheoreticallyOptimalStrategy as tos
 import marketsimcode
 
+def author():
+	return 'tkim338'
+
 if __name__ == "__main__":
 	start_date = dt.datetime(2008, 1, 1)
 	end_date = dt.datetime(2009, 12, 31)

@@ -66,6 +66,12 @@ def obv(df_prices, df_volume):
 		prev_price = curr_price
 		prev_obv = obv_list['obv'][-1]
 	df_obv = pd.DataFrame(data=obv_list['obv'], index=obv_list['date'], columns=['OBV'])
+	# first_val = 1
+	# for val in df_obv.iterrows():
+	# 	if val[1][0] != 0:
+	# 		first_val = val[1][0]
+	# 		break
+	# df_obv = df_obv / first_val
 	return df_obv
 
 def indicator_test(symbol, sd, ed):
@@ -90,11 +96,18 @@ def indicator_test(symbol, sd, ed):
 	sma_window = 20
 	ma = sma(stock_price, window_size=sma_window)
 	ma.columns += ' ('+str(sma_window)+'-day)'
-	ax_ma = stock_price.plot(title='Simple Moving Average ('+symbol+')', figsize=(10,8))
-	ma.plot(ax=ax_ma)
-	ax_ma.set_xlabel('Date')
-	ax_ma.set_ylabel('Price ($)')
-	ax_ma.grid(b=True, which='both', axis='both')
+	fig_ma, (ax1_ma, ax2_ma) = plt.subplots(2, 1, figsize=(10, 8))
+	# ax_ma = stock_price.plot(title='Simple Moving Average ('+symbol+')', figsize=(10,8))
+	stock_price.plot(title='Simple Moving Average (' + symbol + ')', ax=ax1_ma)
+	ma.plot(ax=ax1_ma)
+	ax1_ma.set_ylabel('Price ($)')
+	ax1_ma.grid(b=True, which='both', axis='both')
+
+	df_temp_ma = pd.DataFrame(data=stock_price['adj. close price'] / ma['SMA ('+str(sma_window)+'-day)'], columns=['Price/SMA ratio'])
+	df_temp_ma.plot(ax=ax2_ma, color='r')
+	ax2_ma.set_xlabel('Date')
+	ax2_ma.set_ylabel('Price/SMA')
+	ax2_ma.grid(b=True, which='both', axis='both')
 	plt.savefig('sma.png')
 
 	# 2) Bollinger bands
@@ -103,13 +116,30 @@ def indicator_test(symbol, sd, ed):
 	bl, bu = bollinger_bands(stock_price, window_size=bb_window, std_dev=sdev)
 	bl.columns += ' (-'+str(sdev)+' std. dev.)'
 	bu.columns += ' (+'+str(sdev)+' std. dev.)'
-	ax_bb = stock_price.plot(title='Bollinger Band ('+symbol+')', figsize=(10,8))
-	ma.plot(ax=ax_bb)
-	bu.plot(ax=ax_bb)
-	bl.plot(ax=ax_bb)
-	ax_bb.set_xlabel('Date')
-	ax_bb.set_ylabel('Price ($)')
-	ax_bb.grid(b=True, which='both', axis='both')
+	fig_bb, (ax1_bb, ax2_bb) = plt.subplots(2, 1, figsize=(10, 8))
+	# ax_bb = stock_price.plot(title='Bollinger Band ('+symbol+')', figsize=(10,8))
+	stock_price.plot(title='Bollinger Band (' + symbol + ')', ax=ax1_bb)
+	ma.plot(ax=ax1_bb)
+	bu.plot(ax=ax1_bb, color='g')
+	bl.plot(ax=ax1_bb, color='r')
+	ax1_bb.set_ylabel('Price ($)')
+	ax1_bb.grid(b=True, which='both', axis='both')
+
+	df_bb_percent = pd.DataFrame(data=100 * (stock_price['adj. close price'] - bl['Bollinger Band lower band (-'+str(sdev)+' std. dev.)']) / (bu['Bollinger Band upper band (+'+str(sdev)+' std. dev.)'] - bl['Bollinger Band lower band (-'+str(sdev)+' std. dev.)']))
+	df_bb_percent.columns = ['BB%']
+	df_bb_percent.plot(ax=ax2_bb)
+
+	ser = 100 * bu['Bollinger Band upper band (+'+str(sdev)+' std. dev.)']/bu['Bollinger Band upper band (+'+str(sdev)+' std. dev.)']
+	df_bbp_upper = pd.DataFrame(data=100 * bu['Bollinger Band upper band (+'+str(sdev)+' std. dev.)']/bu['Bollinger Band upper band (+'+str(sdev)+' std. dev.)'])
+	df_bbp_lower = pd.DataFrame(data=bl['Bollinger Band lower band (-'+str(sdev)+' std. dev.)']-bl['Bollinger Band lower band (-'+str(sdev)+' std. dev.)'])
+	df_bbp_upper.columns = ['BB upper band']
+	df_bbp_lower.columns = ['BB lower band']
+	df_bbp_upper.plot(ax=ax2_bb, color='g')
+	df_bbp_lower.plot(ax=ax2_bb, color='r')
+	ax2_bb.set_xlabel('Date')
+	ax2_bb.set_ylabel('Bollinger Band Percent (%)')
+	ax2_bb.grid(b=True, which='both', axis='both')
+
 	plt.savefig('bollinger_band.png')
 
 	# 3) momentum ( price[t]/price[t-N] - 1 )
