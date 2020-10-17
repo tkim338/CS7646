@@ -1,0 +1,46 @@
+sma = []
+for each window in stock_price:
+	compute mean
+	sma.append(mean)
+return sma
+
+
+bollinger_lower = []
+bollinger_upper = []
+for each window in stock_price:
+	compute mean
+	compute std_dev
+	bollinger_lower.append(mean - std_dev)
+	bollinger_upper.append(mean + std_dev)
+return bollinger_lower, bollinger_upper
+
+
+momentum = []
+for each window in stock_price:
+	m = window[i_last]/window[i_first] - 1
+	momentum.append(m)
+return momentum
+
+
+
+volatility = []
+for each window in daily_return:
+	compute std_dev
+	momentum.append(std_dev)
+return momentum
+
+
+
+obv = []
+for each price in stock_price:
+	if daily_return == 0:
+		# do nothing
+	elif daily_return > 0:
+		curr_obv += trade_volume
+	else:
+		curr_obv -= trade_volume
+	obv.append(curr_obv)
+return obv
+	
+	
+	
