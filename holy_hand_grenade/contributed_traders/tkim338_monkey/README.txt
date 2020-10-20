@@ -1,1 +1,0 @@
-The tkim338_monkey trader README
