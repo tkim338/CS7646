@@ -22,9 +22,9 @@ GT honor code violation.
   		  	   		     		  		  		    	 		 		   		 		  
 -----do not edit anything above this line---  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
-Student Name: Tucker Balch (replace with your name)  		  	   		     		  		  		    	 		 		   		 		  
-GT User ID: tb34 (replace with your User ID)  		  	   		     		  		  		    	 		 		   		 		  
-GT ID: 900897987 (replace with your GT ID)  		  	   		     		  		  		    	 		 		   		 		  
+Student Name: Thomas Kim (replace with your name)  		  	   		     		  		  		    	 		 		   		 		  
+GT User ID: tkim338 (replace with your User ID)  		  	   		     		  		  		    	 		 		   		 		  
+GT ID: 902871961 (replace with your GT ID)  		  	   		     		  		  		    	 		 		   		 		  
 """  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 import random as rand  		  	   		     		  		  		    	 		 		   		 		  
@@ -68,10 +68,55 @@ class QLearner(object):
         Constructor method  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
         self.verbose = verbose  		  	   		     		  		  		    	 		 		   		 		  
-        self.num_actions = num_actions  		  	   		     		  		  		    	 		 		   		 		  
+        self.num_actions = num_actions
+        self.num_states = num_states
         self.s = 0  		  	   		     		  		  		    	 		 		   		 		  
-        self.a = 0  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
+        self.a = 0
+
+        self.Q = np.zeros((num_states, num_actions)) # [[0] * num_states] * num_actions
+        self.rar = rar
+        self.radr = radr
+        self.alpha = alpha
+        self.gamma = gamma
+        self.dyna = dyna
+
+        self.prev_s = 0
+        self.prev_a = 0
+
+        self.T = np.zeros((num_states, num_actions, num_states)) + 0.00001 # [[[0.000001] * num_states] * num_actions] * num_states
+        self.R = np.zeros((num_states, num_actions)) # [[0] * num_states] * num_actions
+
+    def choose_action(self, s_prime):
+        a_prime = self.optimal_action()
+
+        if np.random.random() < self.rar:
+            action = rand.randint(0, self.num_actions - 1)
+        else:
+            action = a_prime
+
+        self.rar *= self.radr
+        self.prev_s = s_prime
+        self.prev_a = action
+
+        return action, a_prime
+
+    def optimal_action(self):
+        max_actions = []
+        for i in range(len(self.Q[self.prev_s])):
+            if self.Q[self.prev_s][i] == np.max(self.Q[self.prev_s]):
+                max_actions.append(i)
+        a_prime = np.random.choice(max_actions)[0]
+        return a_prime
+
+    def update_Q(self, r, s_prime, a_prime):
+        self.Q[self.prev_s][self.prev_a] = (1 - self.alpha) * self.Q[self.prev_s][self.prev_a] + self.alpha * (r + self.gamma * self.Q[s_prime][a_prime])
+
+    def update_T(self, s, a, s_prime):
+        self.T[s][a][s_prime] += 1
+
+    def update_R(self, s, a, r):
+        self.R[s][a] = (1 - self.alpha) * self.R[s][a] + self.alpha * r
+
     def querysetstate(self, s):  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
         Update the state without updating the Q-table  		  	   		     		  		  		    	 		 		   		 		  
@@ -80,13 +125,14 @@ class QLearner(object):
         :type s: int  		  	   		     		  		  		    	 		 		   		 		  
         :return: The selected action  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: int  		  	   		     		  		  		    	 		 		   		 		  
-        """  		  	   		     		  		  		    	 		 		   		 		  
-        self.s = s  		  	   		     		  		  		    	 		 		   		 		  
-        action = rand.randint(0, self.num_actions - 1)  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(f"s = {s}, a = {action}")  		  	   		     		  		  		    	 		 		   		 		  
-        return action  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
+        """
+        action, _ = self.choose_action(s)
+        # self.s = s
+        # action = rand.randint(0, self.num_actions - 1)
+        if self.verbose:
+            print(f"s = {s}, a = {action}")
+        return action
+
     def query(self, s_prime, r):  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
         Update the Q table and return an action  		  	   		     		  		  		    	 		 		   		 		  
@@ -97,11 +143,30 @@ class QLearner(object):
         :type r: float  		  	   		     		  		  		    	 		 		   		 		  
         :return: The selected action  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: int  		  	   		     		  		  		    	 		 		   		 		  
-        """  		  	   		     		  		  		    	 		 		   		 		  
-        action = rand.randint(0, self.num_actions - 1)  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(f"s = {s_prime}, a = {action}, r={r}")  		  	   		     		  		  		    	 		 		   		 		  
-        return action  		  	   		     		  		  		    	 		 		   		 		  
+        """
+        self.update_T(self.prev_s, self.prev_a, s_prime)
+        self.update_R(self.prev_s, self.prev_a, r)
+
+        action, a_prime = self.choose_action(s_prime)
+
+        self.update_Q(r, s_prime, a_prime)
+
+        if self.verbose:
+            print(f"s = {s_prime}, a = {action}, r={r}")
+
+        for d in range(self.dyna):
+            dyna_s = np.random.randint(0, self.num_states + 1)
+            dyna_a = np.random.randint(0, self.num_actions + 1)
+            T_probs = self.T[dyna_s][dyna_a] / np.sum(self.T[dyna_s][dyna_a])
+            dyna_s_prime = np.random.choice(range(0, self.num_states + 1), p=T_probs)
+            dyna_r = self.R[dyna_s][dyna_a]
+
+            self.update_Q(dyna_r, dyna_s_prime, self.optimal_action())
+
+        return action
+
+    def author(self):
+        return 'tkim338'
   		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 if __name__ == "__main__":  		  	   		     		  		  		    	 		 		   		 		  
