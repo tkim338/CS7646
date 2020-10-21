@@ -87,7 +87,7 @@ class QLearner(object):
         self.R = np.zeros((num_states, num_actions)) # [[0] * num_states] * num_actions
 
     def choose_action(self, s_prime):
-        a_prime = self.optimal_action()
+        a_prime = self.optimal_action(s_prime)
 
         if np.random.random() < self.rar:
             action = rand.randint(0, self.num_actions - 1)
@@ -95,21 +95,19 @@ class QLearner(object):
             action = a_prime
 
         self.rar *= self.radr
-        self.prev_s = s_prime
-        self.prev_a = action
 
         return action, a_prime
 
-    def optimal_action(self):
+    def optimal_action(self, s):
         max_actions = []
-        for i in range(len(self.Q[self.prev_s])):
-            if self.Q[self.prev_s][i] == np.max(self.Q[self.prev_s]):
+        for i in range(len(self.Q[s])):
+            if self.Q[s][i] == np.max(self.Q[s]):
                 max_actions.append(i)
-        a_prime = np.random.choice(max_actions)[0]
+        a_prime = np.random.choice(max_actions)
         return a_prime
 
-    def update_Q(self, r, s_prime, a_prime):
-        self.Q[self.prev_s][self.prev_a] = (1 - self.alpha) * self.Q[self.prev_s][self.prev_a] + self.alpha * (r + self.gamma * self.Q[s_prime][a_prime])
+    def update_Q(self, s, a, r, s_prime, a_prime):
+        self.Q[s][a] = (1 - self.alpha) * self.Q[s][a] + self.alpha * (r + self.gamma * self.Q[s_prime][a_prime])
 
     def update_T(self, s, a, s_prime):
         self.T[s][a][s_prime] += 1
@@ -149,19 +147,23 @@ class QLearner(object):
 
         action, a_prime = self.choose_action(s_prime)
 
-        self.update_Q(r, s_prime, a_prime)
+        self.update_Q(self.prev_s, self.prev_a, r, s_prime, a_prime)
+
+        self.prev_s = s_prime
+        self.prev_a = action
 
         if self.verbose:
             print(f"s = {s_prime}, a = {action}, r={r}")
 
         for d in range(self.dyna):
-            dyna_s = np.random.randint(0, self.num_states + 1)
-            dyna_a = np.random.randint(0, self.num_actions + 1)
-            T_probs = self.T[dyna_s][dyna_a] / np.sum(self.T[dyna_s][dyna_a])
-            dyna_s_prime = np.random.choice(range(0, self.num_states + 1), p=T_probs)
+            dyna_s = np.random.randint(0, self.num_states)
+            dyna_a = np.random.randint(0, self.num_actions)
+            # T_probs = self.T[dyna_s][dyna_a] / np.sum(self.T[dyna_s][dyna_a])
+            # dyna_s_prime = np.random.choice(range(0, self.num_states), p=T_probs)
+            dyna_s_prime = np.argmax(self.T[dyna_s][dyna_a])
             dyna_r = self.R[dyna_s][dyna_a]
 
-            self.update_Q(dyna_r, dyna_s_prime, self.optimal_action())
+            self.update_Q(dyna_s, dyna_a, dyna_r, dyna_s_prime, self.optimal_action(dyna_s_prime))
 
         return action
 
