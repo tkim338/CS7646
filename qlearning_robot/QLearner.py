@@ -76,12 +76,9 @@ class QLearner(object):
         self.Q = np.zeros((num_states, num_actions)) # [[0] * num_states] * num_actions
         self.rar = rar
         self.radr = radr
-        self.alpha = alpha
+        self.alpha = alpha * 2
         self.gamma = gamma
         self.dyna = dyna
-
-        self.prev_s = 0
-        self.prev_a = 0
 
         self.T = np.zeros((num_states, num_actions, num_states)) + 0.00001 # [[[0.000001] * num_states] * num_actions] * num_states
         self.R = np.zeros((num_states, num_actions)) # [[0] * num_states] * num_actions
@@ -96,24 +93,32 @@ class QLearner(object):
 
         self.rar *= self.radr
 
-        return action, a_prime
+        return action # , a_prime
 
     def optimal_action(self, s):
-        max_actions = []
-        for i in range(len(self.Q[s])):
-            if self.Q[s][i] == np.max(self.Q[s]):
-                max_actions.append(i)
-        a_prime = np.random.choice(max_actions)
+        # max_actions = []
+        # for i in range(len(self.Q[s])):
+        #     if self.Q[s][i] == np.max(self.Q[s], axis=1):
+        #         max_actions.append(i)
+        # a_prime = np.random.choice(max_actions)
+        a_prime = np.argmax(self.Q[s], axis=1)
         return a_prime
 
     def update_Q(self, s, a, r, s_prime, a_prime):
-        self.Q[s][a] = (1 - self.alpha) * self.Q[s][a] + self.alpha * (r + self.gamma * self.Q[s_prime][a_prime])
+        r = np.array(r)
+        s_prime = np.array(s_prime)
+        self.Q[s_prime[r == 1]] = 1
+
+        self.Q[s, a] = (1 - self.alpha) * self.Q[s, a] + self.alpha * (r + self.gamma * self.Q[s_prime, a_prime])
 
     def update_T(self, s, a, s_prime):
-        self.T[s][a][s_prime] += 1
+        self.T[s, a, s_prime] += 1
 
     def update_R(self, s, a, r):
-        self.R[s][a] = (1 - self.alpha) * self.R[s][a] + self.alpha * r
+        s = np.array(s)
+        r = np.array(r)
+        self.R[s, a] = (1 - self.alpha) * self.R[s, a] + self.alpha * r
+        self.R[s[r == 1]] = 1
 
     def querysetstate(self, s):  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
@@ -124,7 +129,7 @@ class QLearner(object):
         :return: The selected action  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: int  		  	   		     		  		  		    	 		 		   		 		  
         """
-        action, _ = self.choose_action(s)
+        action = self.choose_action([s])
         # self.s = s
         # action = rand.randint(0, self.num_actions - 1)
         if self.verbose:
@@ -142,28 +147,26 @@ class QLearner(object):
         :return: The selected action  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: int  		  	   		     		  		  		    	 		 		   		 		  
         """
-        self.update_T(self.prev_s, self.prev_a, s_prime)
-        self.update_R(self.prev_s, self.prev_a, r)
 
-        action, a_prime = self.choose_action(s_prime)
+        action = self.choose_action([s_prime])
 
-        self.update_Q(self.prev_s, self.prev_a, r, s_prime, a_prime)
-
-        self.prev_s = s_prime
-        self.prev_a = action
+        self.update_Q([self.s], [self.a], [r], [s_prime], [action])
 
         if self.verbose:
             print(f"s = {s_prime}, a = {action}, r={r}")
 
-        for d in range(self.dyna):
-            dyna_s = np.random.randint(0, self.num_states)
-            dyna_a = np.random.randint(0, self.num_actions)
-            # T_probs = self.T[dyna_s][dyna_a] / np.sum(self.T[dyna_s][dyna_a])
-            # dyna_s_prime = np.random.choice(range(0, self.num_states), p=T_probs)
-            dyna_s_prime = np.argmax(self.T[dyna_s][dyna_a])
-            dyna_r = self.R[dyna_s][dyna_a]
+        if self.dyna > 0:
+            self.update_T([self.s], [self.a], [s_prime])
+            self.update_R([s_prime], [self.a], [r])
 
+            dyna_s = np.random.randint(0, self.num_states, self.dyna * 10)
+            dyna_a = np.random.randint(0, self.num_actions, self.dyna * 10)
+            dyna_s_prime = np.argmax(self.T[dyna_s, dyna_a], axis=1)
+            dyna_r = self.R[dyna_s_prime, dyna_a]
             self.update_Q(dyna_s, dyna_a, dyna_r, dyna_s_prime, self.optimal_action(dyna_s_prime))
+
+        self.s = s_prime
+        self.a = action
 
         return action
 
@@ -172,4 +175,4 @@ class QLearner(object):
   		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 if __name__ == "__main__":  		  	   		     		  		  		    	 		 		   		 		  
-    print("Remember Q from Star Trek? Well, this isn't him")  		  	   		     		  		  		    	 		 		   		 		  
+    print("Remember Q from Star Trek? Well, this isn't him")
