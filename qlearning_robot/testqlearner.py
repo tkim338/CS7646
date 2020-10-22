@@ -238,7 +238,7 @@ def test_code():
     verbose = True  # print lots of debug stuff if True  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
     # read in the map  		  	   		     		  		  		    	 		 		   		 		  
-    filename = "testworlds/world01.csv"  		  	   		     		  		  		    	 		 		   		 		  
+    filename = "testworlds/world02.csv"
     inf = open(filename)  		  	   		     		  		  		    	 		 		   		 		  
     data = np.array(  		  	   		     		  		  		    	 		 		   		 		  
         [list(map(float, s.strip().split(","))) for s in inf.readlines()]  		  	   		     		  		  		    	 		 		   		 		  
@@ -263,7 +263,7 @@ def test_code():
         dyna=0,  		  	   		     		  		  		    	 		 		   		 		  
         verbose=False,  		  	   		     		  		  		    	 		 		   		 		  
     )  # initialize the learner  		  	   		     		  		  		    	 		 		   		 		  
-    epochs = 500  		  	   		     		  		  		    	 		 		   		 		  
+    epochs = 500
     total_reward = test(data, epochs, learner, verbose)  		  	   		     		  		  		    	 		 		   		 		  
     print(f"{epochs}, median total_reward {total_reward}")  		  	   		     		  		  		    	 		 		   		 		  
     print()  		  	   		     		  		  		    	 		 		   		 		  
@@ -290,7 +290,7 @@ def test_code():
     print()  		  	   		     		  		  		    	 		 		   		 		  
     print(f"results for {filename}")  		  	   		     		  		  		    	 		 		   		 		  
     print(f"non_dyna_score: {non_dyna_score}")  		  	   		     		  		  		    	 		 		   		 		  
-    print(f"dyna_score    : {dyna_score}")  		  	   		     		  		  		    	 		 		   		 		  
+    print(f"dyna_score    : {dyna_score}")
   		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 if __name__ == "__main__":  		  	   		     		  		  		    	 		 		   		 		  
