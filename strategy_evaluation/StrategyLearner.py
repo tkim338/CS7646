@@ -22,19 +22,25 @@ GT honor code violation.
   		  	   		     		  		  		    	 		 		   		 		  
 -----do not edit anything above this line---  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
-Student Name: Tucker Balch (replace with your name)  		  	   		     		  		  		    	 		 		   		 		  
-GT User ID: tb34 (replace with your User ID)  		  	   		     		  		  		    	 		 		   		 		  
-GT ID: 900897987 (replace with your GT ID)  		  	   		     		  		  		    	 		 		   		 		  
+Student Name: Thomas Kim (replace with your name)  		  	   		     		  		  		    	 		 		   		 		  
+GT User ID: tkim338 (replace with your User ID)  		  	   		     		  		  		    	 		 		   		 		  
+GT ID: 902871961 (replace with your GT ID)  		  	   		     		  		  		    	 		 		   		 		  
 """  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 import datetime as dt  		  	   		     		  		  		    	 		 		   		 		  
 import random  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
 import pandas as pd  		  	   		     		  		  		    	 		 		   		 		  
-import util as ut  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
-class StrategyLearner(object):  		  	   		     		  		  		    	 		 		   		 		  
+import util as ut
+import QLearner as q
+import indicators
+import numpy as np
+
+
+
+
+
+class StrategyLearner(object):
     """  		  	   		     		  		  		    	 		 		   		 		  
     A strategy learner that can learn a trading policy using the same indicators used in ManualStrategy.  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
@@ -45,16 +51,83 @@ class StrategyLearner(object):
     :type impact: float  		  	   		     		  		  		    	 		 		   		 		  
     :param commission: The commission amount charged, defaults to 0.0  		  	   		     		  		  		    	 		 		   		 		  
     :type commission: float  		  	   		     		  		  		    	 		 		   		 		  
-    """  		  	   		     		  		  		    	 		 		   		 		  
+    """
+    def author(self):
+        return 'tkim338'
+
     # constructor  		  	   		     		  		  		    	 		 		   		 		  
     def __init__(self, verbose=False, impact=0.0, commission=0.0):  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
         Constructor method  		  	   		     		  		  		    	 		 		   		 		  
-        """  		  	   		     		  		  		    	 		 		   		 		  
+        """
+        self.num_bins = 4
+
         self.verbose = verbose  		  	   		     		  		  		    	 		 		   		 		  
         self.impact = impact  		  	   		     		  		  		    	 		 		   		 		  
-        self.commission = commission  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
+        self.commission = commission
+        self.learner = q.QLearner(alpha=0.8, rar=0.99, radr=0.999, num_states=self.num_bins**6 * 3, num_actions=3, dyna=1000)
+
+        self.sym = None
+        self.price_data = None
+        self.sma20 = None
+        self.sma50 = None
+        self.bb_lower, self.bb_upper = None, None
+        self.mm = None
+        # self.vol = None
+        self.position = 0
+
+    def setup(self, price_data):
+        self.sym = price_data.columns[0]
+        self.price_data = indicators.normalize(price_data)
+        self.sma20 = indicators.sma(self.price_data, window_size=20)
+        self.sma50 = indicators.sma(self.price_data, window_size=50)
+        self.bb_lower, self.bb_upper = indicators.bollinger_bands(self.price_data)
+        self.mm = indicators.momentum(self.price_data)
+        # self.vol = indicators.volatility(self.price_data)
+
+    def bin(self, data):
+        div = 2 / self.num_bins
+        if np.isnan(data):
+            return None
+
+        bins = np.arange(-div, 1.1, div)
+        return np.min([np.sum(bins < data) - 1, self.num_bins - 1])
+
+        # if data < -div:
+        #     return 0
+        # if data < 0:
+        #     return 1
+        # if data < 0.5:
+        #     return 2
+        # return 3
+
+    def get_state(self, date):
+        s = []
+        s.append(self.bin(self.price_data[self.sym][date]))
+        s.append(self.bin(self.sma20['SMA'][date]))
+        s.append(self.bin(self.sma50['SMA'][date]))
+        s.append(self.bin(self.bb_lower['bb_lower'][date]))
+        s.append(self.bin(self.bb_upper['bb_upper'][date]))
+        s.append(self.bin(self.mm['momentum'][date]))
+        s.append(self.position + 1)
+        if any(si is None for si in s):
+            return 0
+        state = 0
+        for i in range(len(s)):
+            state += s[i] * self.num_bins**i
+        return state
+
+    def update_position(self, action):
+        if action == 0:
+            trade = -1000 - 1000 * self.position
+            self.position = -1
+        elif action == 2:
+            trade = 1000 - 1000 * self.position
+            self.position = 1
+        else:
+            trade = 0
+        return trade
+
     # this method should create a QLearner, and train it for trading  		  	   		     		  		  		    	 		 		   		 		  
     def add_evidence(  		  	   		     		  		  		    	 		 		   		 		  
         self,  		  	   		     		  		  		    	 		 		   		 		  
@@ -76,25 +149,27 @@ class StrategyLearner(object):
         :type sv: int  		  	   		     		  		  		    	 		 		   		 		  
         """  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
-        # add your code to do learning here  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
-        # example usage of the old backward compatible util function  		  	   		     		  		  		    	 		 		   		 		  
-        syms = [symbol]  		  	   		     		  		  		    	 		 		   		 		  
-        dates = pd.date_range(sd, ed)  		  	   		     		  		  		    	 		 		   		 		  
-        prices_all = ut.get_data(syms, dates)  # automatically adds SPY  		  	   		     		  		  		    	 		 		   		 		  
-        prices = prices_all[syms]  # only portfolio symbols  		  	   		     		  		  		    	 		 		   		 		  
-        prices_SPY = prices_all["SPY"]  # only SPY, for comparison later  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(prices)  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
-        # example use with new colname  		  	   		     		  		  		    	 		 		   		 		  
-        volume_all = ut.get_data(  		  	   		     		  		  		    	 		 		   		 		  
-            syms, dates, colname="Volume"  		  	   		     		  		  		    	 		 		   		 		  
-        )  # automatically adds SPY  		  	   		     		  		  		    	 		 		   		 		  
-        volume = volume_all[syms]  # only portfolio symbols  		  	   		     		  		  		    	 		 		   		 		  
-        volume_SPY = volume_all["SPY"]  # only SPY, for comparison later  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(volume)  		  	   		     		  		  		    	 		 		   		 		  
+        # add your code to do learning here
+        price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
+        self.setup(pd.DataFrame(price_data[symbol]))
+
+        s = self.get_state(price_data.first_valid_index())
+        a = self.learner.querysetstate(s)
+        self.update_position(a)
+        p = price_data[symbol][0]
+
+        counter = 51
+        for td in price_data.iterrows():
+            if counter > 0:
+                counter -= 1
+            else:
+                date = td[0]
+                p_prime = td[1][symbol]
+                delta = p_prime - p
+                r = self.position * delta
+                s_prime = self.get_state(date)
+                a = self.learner.query(s_prime, r)
+                self.update_position(a)
   		  	   		     		  		  		    	 		 		   		 		  
     # this method should use the existing policy and test it against new data  		  	   		     		  		  		    	 		 		   		 		  
     def testPolicy(  		  	   		     		  		  		    	 		 		   		 		  
@@ -120,27 +195,30 @@ class StrategyLearner(object):
             Values of +2000 and -2000 for trades are also legal when switching from long to short or short to  		  	   		     		  		  		    	 		 		   		 		  
             long so long as net holdings are constrained to -1000, 0, and 1000.  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: pandas.DataFrame  		  	   		     		  		  		    	 		 		   		 		  
-        """  		  	   		     		  		  		    	 		 		   		 		  
-  		  	   		     		  		  		    	 		 		   		 		  
-        # here we build a fake set of trades  		  	   		     		  		  		    	 		 		   		 		  
-        # your code should return the same sort of data  		  	   		     		  		  		    	 		 		   		 		  
-        dates = pd.date_range(sd, ed)  		  	   		     		  		  		    	 		 		   		 		  
-        prices_all = ut.get_data([symbol], dates)  # automatically adds SPY  		  	   		     		  		  		    	 		 		   		 		  
-        trades = prices_all[[symbol,]]  # only portfolio symbols  		  	   		     		  		  		    	 		 		   		 		  
-        trades_SPY = prices_all["SPY"]  # only SPY, for comparison later  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[:, :] = 0  # set them all to nothing  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[0, :] = 1000  # add a BUY at the start  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[40, :] = -1000  # add a SELL  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[41, :] = 1000  # add a BUY  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[60, :] = -2000  # go short from long  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[61, :] = 2000  # go long from short  		  	   		     		  		  		    	 		 		   		 		  
-        trades.values[-1, :] = -1000  # exit on the last day  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(type(trades))  # it better be a DataFrame!  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(trades)  		  	   		     		  		  		    	 		 		   		 		  
-        if self.verbose:  		  	   		     		  		  		    	 		 		   		 		  
-            print(prices_all)  		  	   		     		  		  		    	 		 		   		 		  
+        """
+        output = {'Date': [], 'Trade': []}
+
+        price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
+        self.setup(pd.DataFrame(price_data[symbol]))
+
+        s = self.get_state(price_data.first_valid_index())
+        a = self.learner.querysetstate(s)
+        self.update_position(a)
+
+        counter = 51
+        for td in price_data.iterrows():
+            if counter > 0:
+                counter -= 1
+            else:
+                date = td[0]
+                s_prime = self.get_state(date)
+                a = self.learner.querysetstate(s_prime)
+                trade = self.update_position(a)
+
+                if trade != 0:
+                    output['Date'].append(date)
+                    output['Trade'].append(trade)
+        trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
         return trades  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
