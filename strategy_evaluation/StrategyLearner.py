@@ -60,7 +60,7 @@ class StrategyLearner(object):
         """  		  	   		     		  		  		    	 		 		   		 		  
         Constructor method  		  	   		     		  		  		    	 		 		   		 		  
         """
-        self.num_bins = 4
+        self.num_bins = 3
 
         self.verbose = verbose  		  	   		     		  		  		    	 		 		   		 		  
         self.impact = impact  		  	   		     		  		  		    	 		 		   		 		  
@@ -86,7 +86,7 @@ class StrategyLearner(object):
         # self.vol = indicators.volatility(self.price_data)
 
     def bin(self, data):
-        div = 2 / self.num_bins
+        div = 2 / self.num_bins # (-1, 1) input
         if np.isnan(data):
             return None
 
@@ -104,10 +104,16 @@ class StrategyLearner(object):
     def get_state(self, date):
         s = []
         s.append(self.bin(self.price_data[self.sym][date]))
-        s.append(self.bin(self.sma20['SMA'][date]))
-        s.append(self.bin(self.sma50['SMA'][date]))
-        s.append(self.bin(self.bb_lower['bb_lower'][date]))
-        s.append(self.bin(self.bb_upper['bb_upper'][date]))
+        # s.append(self.bin(self.sma20['SMA'][date]))
+        # s.append(self.bin(self.sma50['SMA'][date]))
+        s.append(self.bin(self.sma20['SMA'][date] - self.sma50['SMA'][date]))
+        s.append(self.bin(self.sma50['SMA'][date] - self.sma20['SMA'][date]))
+
+        # s.append(self.bin(self.bb_lower['bb_lower'][date]))
+        # s.append(self.bin(self.bb_upper['bb_upper'][date]))
+        s.append(self.bin(self.price_data[self.sym][date] - self.bb_upper['bb_upper'][date]))
+        s.append(self.bin(self.price_data[self.sym][date] - self.bb_lower['bb_lower'][date]))
+
         s.append(self.bin(self.mm['momentum'][date]))
         s.append(self.position + 1)
         if any(si is None for si in s):

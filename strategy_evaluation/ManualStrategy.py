@@ -20,14 +20,14 @@ class ManualStrategy:
         self.mm = None
         self.vol = None
 
-    def date_list(self, sd, ed):
-        all_dates = []
-        day_increment = dt.timedelta(days=1)
-        date_i = sd
-        while date_i <= ed:
-            all_dates.append(date_i)
-            date_i += day_increment
-        return all_dates
+    # def date_list(self, sd, ed):
+    #     all_dates = []
+    #     day_increment = dt.timedelta(days=1)
+    #     date_i = sd
+    #     while date_i <= ed:
+    #         all_dates.append(date_i)
+    #         date_i += day_increment
+    #     return all_dates
 
     def setup(self, price_data):
         self.sym = price_data.columns[0]
@@ -68,7 +68,6 @@ class ManualStrategy:
         return 0
 
     def testPolicy(self, symbol="JPM", sd=dt.datetime(2008, 1, 1), ed=dt.datetime(2009, 12, 31), sv=100000):
-        all_dates = self.date_list(sd, ed)
         # stock_data = get_data([symbol], all_dates, addSPY=False)
         stock_data = get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         current_position = 0
