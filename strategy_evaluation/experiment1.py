@@ -35,8 +35,8 @@ def run():
 	vals_man.columns = ['manual strategy']
 
 	learner = sl.StrategyLearner()
-	learner.add_evidence(symbol='JPM', sd=start_date, ed=end_date)
-	trades_sl = learner.testPolicy(symbol='JPM', sd=start_date, ed=end_date, sv=100000)
+	learner.add_evidence(symbol=sym, sd=start_date, ed=end_date)
+	trades_sl = learner.testPolicy(symbol=sym, sd=start_date, ed=end_date, sv=100000)
 	vals_sl = msc.compute_portvals(trades_sl, start_val=100000, commission=9.95, impact=0.005)
 	vals_sl = vals_sl / vals_sl[0][0]
 	vals_sl.columns = ['strategy learner']
@@ -49,5 +49,12 @@ def run():
 	output = pd.DataFrame([vals_bm['benchmark'], vals_man['manual strategy'], vals_sl['strategy learner']]).transpose()
 	output = output.fillna(method='ffill')
 	output = output.fillna(method='bfill')
-	output.plot()
-	plt.show()
+	output_plot = output.plot()
+	output_plot.set_xlabel('Date')
+	output_plot.set_ylabel('Normalized Value')
+	output_plot.grid(b=True, which='both', axis='both')
+	plt.savefig('experiment1.png')
+	# plt.show()
+
+if __name__ == "__main__":
+	run()

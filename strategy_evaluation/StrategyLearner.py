@@ -65,7 +65,7 @@ class StrategyLearner(object):
         self.verbose = verbose  		  	   		     		  		  		    	 		 		   		 		  
         self.impact = impact  		  	   		     		  		  		    	 		 		   		 		  
         self.commission = commission
-        self.learner = q.QLearner(alpha=0.8, rar=0.99, radr=0.999, num_states=self.num_bins**6 * 3, num_actions=3, dyna=1000)
+        self.learner = q.QLearner(alpha=0.5, rar=0.99, radr=0.999, num_states=self.num_bins**6 * 3, num_actions=3, dyna=1000)
 
         self.sym = None
         self.price_data = None
@@ -165,17 +165,18 @@ class StrategyLearner(object):
         p = price_data[symbol][0]
 
         counter = 51
-        for td in price_data.iterrows():
-            if counter > 0:
-                counter -= 1
-            else:
-                date = td[0]
-                p_prime = td[1][symbol]
-                delta = p_prime - p
-                r = self.position * delta
-                s_prime = self.get_state(date)
-                a = self.learner.query(s_prime, r)
-                self.update_position(a)
+        for i in range(10):
+            for td in price_data.iterrows():
+                if counter > 0:
+                    counter -= 1
+                else:
+                    date = td[0]
+                    p_prime = td[1][symbol]
+                    delta = p_prime - p
+                    r = self.position * delta
+                    s_prime = self.get_state(date)
+                    a = self.learner.query(s_prime, r)
+                    self.update_position(a)
   		  	   		     		  		  		    	 		 		   		 		  
     # this method should use the existing policy and test it against new data  		  	   		     		  		  		    	 		 		   		 		  
     def testPolicy(  		  	   		     		  		  		    	 		 		   		 		  
