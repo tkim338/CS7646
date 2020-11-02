@@ -65,7 +65,8 @@ class StrategyLearner(object):
         self.verbose = verbose  		  	   		     		  		  		    	 		 		   		 		  
         self.impact = impact  		  	   		     		  		  		    	 		 		   		 		  
         self.commission = commission
-        self.learner = q.QLearner(alpha=0.5, rar=0.99, radr=0.999, num_states=self.num_bins**6 * 3, num_actions=3, dyna=1000)
+        # self.learner = q.QLearner(alpha=0.5, rar=0.99, radr=0.999, num_states=self.num_bins**5, num_actions=3, dyna=0)
+        self.learner = q.QLearner(alpha=0.2, rar=0.9, radr=0.999, num_states=self.num_bins ** 4, num_actions=3, dyna=0)
 
         self.sym = None
         self.price_data = None
@@ -76,6 +77,8 @@ class StrategyLearner(object):
         # self.vol = None
         self.position = 0
 
+        self.states = None
+
     def setup(self, price_data):
         self.sym = price_data.columns[0]
         self.price_data = indicators.normalize(price_data)
@@ -85,46 +88,46 @@ class StrategyLearner(object):
         self.mm = indicators.momentum(self.price_data)
         # self.vol = indicators.volatility(self.price_data)
 
-    def bin(self, data):
-        div = 2 / self.num_bins # (-1, 1) input
-        if np.isnan(data):
-            return None
+        sma20_50 = pd.qcut(self.sma20['SMA'] - self.sma50['SMA'], self.num_bins, labels=False)
+        sma50_20 = pd.qcut(self.sma50['SMA'] - self.sma20['SMA'], self.num_bins, labels=False)
+        sma = self.sma20
+        for td in self.sma20.iterrows():
+            date = td[0]
+            sma20_val = self.sma20['SMA'][date]
+            sma50_val = self.sma50['SMA'][date]
+            if date - dt.timedelta(days=1) in self.sma20['SMA']:
+                sma20_val_prev = self.sma20['SMA'][date - dt.timedelta(days=1)]
+            else:
+                sma20_val_prev = np.nan
+            if date - dt.timedelta(days=1) in self.sma50['SMA']:
+                sma50_val_prev = self.sma50['SMA'][date - dt.timedelta(days=1)]
+            else:
+                sma50_val_prev = np.nan
 
-        bins = np.arange(-div, 1.1, div)
-        return np.min([np.sum(bins < data) - 1, self.num_bins - 1])
+            if np.isnan(sma20_val) or np.isnan(sma50_val):
+                sma['SMA'][date] = np.nan
+            elif sma20_val > sma50_val and sma20_val_prev < sma50_val_prev:
+                sma['SMA'][date] = 1
+            elif sma20_val < sma50_val and sma20_val_prev > sma50_val_prev:
+                sma['SMA'][date] = 2
+            else:
+                sma['SMA'][date] = 0
 
-        # if data < -div:
-        #     return 0
-        # if data < 0:
-        #     return 1
-        # if data < 0.5:
-        #     return 2
-        # return 3
+        bb_upper = pd.qcut(self.price_data[self.sym] - self.bb_upper['bb_upper'], self.num_bins, labels=False)
+        bb_lower = pd.qcut(self.price_data[self.sym] - self.bb_lower['bb_lower'], self.num_bins, labels=False)
 
-    def get_state(self, date):
-        s = []
-        s.append(self.bin(self.price_data[self.sym][date]))
-        # s.append(self.bin(self.sma20['SMA'][date]))
-        # s.append(self.bin(self.sma50['SMA'][date]))
-        s.append(self.bin(self.sma20['SMA'][date] - self.sma50['SMA'][date]))
-        s.append(self.bin(self.sma50['SMA'][date] - self.sma20['SMA'][date]))
+        self.price_data = pd.qcut(self.price_data[self.sym], self.num_bins, labels=False)
+        # self.sma20 = pd.qcut(self.sma20['SMA'], self.num_bins, labels=False)
+        # self.sma50 = pd.qcut(self.sma50['SMA'], self.num_bins, labels=False)
+        self.bb_lower = pd.qcut(self.bb_lower['bb_lower'], self.num_bins, labels=False)
+        self.bb_upper = pd.qcut(self.bb_upper['bb_upper'], self.num_bins, labels=False)
+        self.mm = pd.qcut(self.mm['momentum'], self.num_bins, labels=False)
 
-        # s.append(self.bin(self.bb_lower['bb_lower'][date]))
-        # s.append(self.bin(self.bb_upper['bb_upper'][date]))
-        s.append(self.bin(self.price_data[self.sym][date] - self.bb_upper['bb_upper'][date]))
-        s.append(self.bin(self.price_data[self.sym][date] - self.bb_lower['bb_lower'][date]))
-
-        s.append(self.bin(self.mm['momentum'][date]))
-        s.append(self.position + 1)
-        if any(si is None for si in s):
-            return 0
-        state = 0
-        for i in range(len(s)):
-            state += s[i] * self.num_bins**i
-        return state
+        # self.states = sma20_50*3**4 + sma50_20*3**3 + bb_lower*3**2 + bb_upper*3 + self.mm
+        self.states = sma['SMA']*3**3 + bb_upper*3**2 + bb_lower*3**1 + self.mm
 
     def update_position(self, action):
-        if action == 0:
+        if action == 1:
             trade = -1000 - 1000 * self.position
             self.position = -1
         elif action == 2:
@@ -159,24 +162,31 @@ class StrategyLearner(object):
         price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         self.setup(pd.DataFrame(price_data[symbol]))
 
-        s = self.get_state(price_data.first_valid_index())
-        a = self.learner.querysetstate(s)
-        self.update_position(a)
-        p = price_data[symbol][0]
+        for i in range(0, 100):
+            date = self.states.first_valid_index()
+            s0 = int(self.states[date])
+            a = self.learner.querysetstate(s0)
+            self.update_position(a)
+            p = price_data[self.sym][date]
+            date += dt.timedelta(days=1)
 
-        counter = 51
-        for i in range(10):
-            for td in price_data.iterrows():
-                if counter > 0:
-                    counter -= 1
-                else:
-                    date = td[0]
-                    p_prime = td[1][symbol]
+            date_final = self.states.last_valid_index()
+            while date <= date_final:
+                if date in price_data[self.sym]:
+                    p_prime = price_data[self.sym][date]
                     delta = p_prime - p
                     r = self.position * delta
-                    s_prime = self.get_state(date)
-                    a = self.learner.query(s_prime, r)
+                    if r > 0:
+                        r = 1
+                    elif r < 0:
+                        r = -1
+                    else:
+                        r = 0
+
+                    s = int(self.states[date])
+                    a = self.learner.query(s, r)
                     self.update_position(a)
+                date += dt.timedelta(days=1)
   		  	   		     		  		  		    	 		 		   		 		  
     # this method should use the existing policy and test it against new data  		  	   		     		  		  		    	 		 		   		 		  
     def testPolicy(  		  	   		     		  		  		    	 		 		   		 		  
@@ -208,7 +218,7 @@ class StrategyLearner(object):
         price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         self.setup(pd.DataFrame(price_data[symbol]))
 
-        s = self.get_state(price_data.first_valid_index())
+        s = int(self.states[self.states.first_valid_index()])
         a = self.learner.querysetstate(s)
         self.update_position(a)
 
@@ -218,12 +228,12 @@ class StrategyLearner(object):
                 counter -= 1
             else:
                 date = td[0]
-                s_prime = self.get_state(date)
+                s_prime = int(self.states[date])
                 a = self.learner.querysetstate(s_prime)
-                trade = self.update_position(a)
+                trade = 1 * self.update_position(a)
 
                 if trade != 0:
-                    output['Date'].append(date)
+                    output['Date'].append(date - dt.timedelta(days=1))
                     output['Trade'].append(trade)
         trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
         return trades  		  	   		     		  		  		    	 		 		   		 		  
