@@ -14,7 +14,7 @@ class QLearner(object):
         rar=0.5,
         radr=0.99,
         dyna=0,
-        verbose=False,
+        verbose=False
     ):	  	   		     		  		  		    	 		 		   		 		  
         self.verbose = verbose
         self.num_actions = num_actions
