@@ -152,24 +152,23 @@ class ManualStrategy:
                 output_plot.plot([index, index], [y_min, y_max], 'k', linewidth=1)
 
         plt.savefig(filename)
-        return vals_man['manual strategy'] / vals_bm['benchmark']
+        output_df = vals_man['manual strategy'] / vals_bm['benchmark']
+        output_df = output_df.fillna(method='bfill')
+        output_df = output_df.fillna(method='ffill')
+        ret_bm = msc.compute_ret(vals_bm)
+        ret_man = msc.compute_ret(vals_man)
+        return output_df, ret_bm, ret_man
 
     def in_sample_test(self):
         sym = 'JPM'
         start_date = dt.datetime(2008, 1, 1)
         end_date = dt.datetime(2009, 12, 31)
         filename = 'in-sample-test.png'
-        df = self.sample_test(sym, start_date, end_date, filename)
-        df = df.fillna(method='bfill')
-        df = df.fillna(method='ffill')
-        return df
+        return self.sample_test(sym, start_date, end_date, filename)
 
     def out_sample_test(self):
         sym = 'JPM'
         start_date = dt.datetime(2010, 1, 1)
         end_date = dt.datetime(2011, 12, 31)
         filename = 'out-sample-test.png'
-        df = self.sample_test(sym, start_date, end_date, filename)
-        df = df.fillna(method='bfill')
-        df = df.fillna(method='ffill')
-        return df
+        return self.sample_test(sym, start_date, end_date, filename)

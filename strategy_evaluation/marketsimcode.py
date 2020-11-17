@@ -51,7 +51,9 @@ def compute_portvals(
 				holdings[sym] += trade
 			else:
 				holdings[sym] = trade
-			holdings['cash'] -= trade * sym_val * (1 + impact)
+			# holdings['cash'] -= trade * sym_val * (1 + impact)
+			holdings['cash'] -= trade * sym_val
+			holdings['cash'] -= abs(trade) * sym_val * impact
 		return holdings
 
 	def get_portfolio_value(curr_holdings, date):
@@ -85,6 +87,18 @@ def compute_portvals(
 
 	rv = pd.DataFrame(index=portvals.index, data=portvals.values)
 	return rv
+
+def compute_ret(port_vals):
+	values = port_vals.values
+	ret_cum = values[-1][0]/values[0][0]
+	ret_daily = []
+	prev_val = values[0]
+	for val in values:
+		ret_daily.append((val-prev_val)/val)
+		prev_val = val
+	ret_daily_mean = np.mean(ret_daily)
+	ret_daily_std = np.std(ret_daily)
+	return ret_cum, ret_daily_mean, ret_daily_std
 
 if __name__ == "__main__":
 	# test_code()

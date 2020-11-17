@@ -39,7 +39,6 @@ import numpy as np
 
 
 
-
 class StrategyLearner(object):
     """  		  	   		     		  		  		    	 		 		   		 		  
     A strategy learner that can learn a trading policy using the same indicators used in ManualStrategy.  		  	   		     		  		  		    	 		 		   		 		  
@@ -67,7 +66,9 @@ class StrategyLearner(object):
         self.commission = commission
         # self.learner = q.QLearner(alpha=0.2, rar=0.9, radr=0.999, num_states=self.num_bins ** 4, num_actions=3, dyna=0)
         # self.learner = q.QLearner(alpha=0.2, gamma=0.5, rar=0.5, radr=0.99, num_states=self.num_bins ** 3, num_actions=3, dyna=0)
-        self.learner = q.QLearner(num_states=self.num_bins**2 * 3, num_actions=2, dyna=1000)
+
+        # self.learner = q.QLearner(num_states=self.num_bins**2 * 3, num_actions=2, dyna=1000)
+        self.learner = q.QLearner(alpha=0.5, gamma=0.5, rar=0.5, radr=0.99, num_states=self.num_bins ** 2 * 3 * 2, num_actions=3, dyna=1000)
 
         self.sym = None
         self.price_data = None
@@ -141,7 +142,7 @@ class StrategyLearner(object):
     def update_position(self, action):
         if action == 0:
             trade = -1000 - 1000 * self.position
-            self.position = -1
+            self.position = 0
         elif action == 1:
             trade = 1000 - 1000 * self.position
             self.position = 1
@@ -174,32 +175,46 @@ class StrategyLearner(object):
         price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         self.setup(pd.DataFrame(price_data[symbol]))
 
-        for i in range(0, 1):
-            date = self.states.first_valid_index()
-            s0 = int(self.states[date])
-            a = self.learner.querysetstate(s0)
+        states_df = pd.DataFrame(self.states.loc[self.states.first_valid_index():])
+        p = price_data[self.sym][self.states.first_valid_index()]
+        a = 2
+        for row in states_df.iterrows():
+            date = row[0]
+            p_prime = price_data[self.sym][date]
+            delta = p_prime - p
+            r = (self.position*2-1) * delta
+            if a != 2:  # trade made, pay fees
+                r -= self.commission
+                r -= abs(self.impact * p_prime)
+
+            s = int(self.states[date]) + (self.position * self.num_bins ** 2 * 3)
+            a = self.learner.query(s, r)
             self.update_position(a)
-            p = price_data[self.sym][date]
-            date += dt.timedelta(days=1)
+            p = p_prime
 
-            date_final = self.states.last_valid_index()
-            while date <= date_final:
-                if date in price_data[self.sym]:
-                    p_prime = price_data[self.sym][date]
-                    delta = p_prime - p
-                    r = self.position * delta
-                    # if r > 0:
-                    #     r = 1
-                    # elif r < 0:
-                    #     r = -1
-                    # else:
-                    #     r = 0
-
-                    s = int(self.states[date])
-                    a = self.learner.query(s, r)
-                    self.update_position(a)
-                    p = p_prime
-                date += dt.timedelta(days=1)
+        # for i in range(0, 1):
+        #     date = self.states.first_valid_index()
+        #     s0 = int(self.states[date])
+        #     a = self.learner.querysetstate(s0)
+        #     self.update_position(a)
+        #     p = price_data[self.sym][date]
+        #     date += dt.timedelta(days=1)
+        #
+        #     date_final = self.states.last_valid_index()
+        #     while date <= date_final:
+        #         if date in price_data[self.sym]:
+        #             p_prime = price_data[self.sym][date]
+        #             delta = p_prime - p
+        #             r = self.position * delta
+        #             if a != 2: # trade made
+        #                 r -= self.commission
+        #                 r -= abs(self.impact * p_prime)
+        #
+        #             s = int(self.states[date])
+        #             a = self.learner.query(s, r)
+        #             self.update_position(a)
+        #             p = p_prime
+        #         date += dt.timedelta(days=1)
   		  	   		     		  		  		    	 		 		   		 		  
     # this method should use the existing policy and test it against new data  		  	   		     		  		  		    	 		 		   		 		  
     def testPolicy(  		  	   		     		  		  		    	 		 		   		 		  
@@ -249,7 +264,18 @@ class StrategyLearner(object):
                 if trade != 0:
                     output['Date'].append(date - dt.timedelta(days=1))
                     output['Trade'].append(trade)
+
+
+        # output['Trade'] = []
+        # output['Date'] = []
+
         trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
+
+        if len(trades.values) == 0:
+            date0 = self.price_data.index[0]
+            val0 = 2000
+            new_df = pd.DataFrame([val0], [date0], columns=[symbol])
+            trades = trades.append(new_df)
         return trades  		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  
   		  	   		     		  		  		    	 		 		   		 		  

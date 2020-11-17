@@ -31,7 +31,7 @@ def run():
 	output_df_list = []
 	impacts = [0, 0.005, 0.01, 0.1]
 	for imp in impacts:
-		learner = sl.StrategyLearner()
+		learner = sl.StrategyLearner(impact=imp)
 		learner.add_evidence(symbol=sym, sd=start_date, ed=end_date)
 		trades_sl = learner.testPolicy(symbol=sym, sd=start_date, ed=end_date, sv=100000)
 		vals_sl = msc.compute_portvals(trades_sl, start_val=100000, commission=0, impact=imp)
@@ -47,7 +47,7 @@ def run():
 	output = pd.DataFrame([vals_bm['benchmark'], output_df_list[0]['impact: '+str(impacts[0])], output_df_list[1]['impact: '+str(impacts[1])], output_df_list[2]['impact: '+str(impacts[2])], output_df_list[3]['impact: '+str(impacts[3])]]).transpose()
 	output = output.fillna(method='ffill')
 	output = output.fillna(method='bfill')
-	output_plot = output.plot(figsize=(15,8))
+	output_plot = output.plot(figsize=(12,8))
 	output_plot.set_xlabel('Date')
 	output_plot.set_ylabel('Normalized Value')
 	output_plot.grid(b=True, which='both', axis='both')

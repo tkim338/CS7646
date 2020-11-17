@@ -49,7 +49,7 @@ def run():
 	output = pd.DataFrame([vals_bm['benchmark'], vals_man['manual strategy'], vals_sl['strategy learner']]).transpose()
 	output = output.fillna(method='ffill')
 	output = output.fillna(method='bfill')
-	output_plot = output.plot(figsize=(15,8))
+	output_plot = output.plot(figsize=(12,8))
 	output_plot.set_xlabel('Date')
 	output_plot.set_ylabel('Normalized Value')
 	output_plot.grid(b=True, which='both', axis='both')
