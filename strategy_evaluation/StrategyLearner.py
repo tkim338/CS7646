@@ -191,30 +191,6 @@ class StrategyLearner(object):
             a = self.learner.query(s, r)
             self.update_position(a)
             p = p_prime
-
-        # for i in range(0, 1):
-        #     date = self.states.first_valid_index()
-        #     s0 = int(self.states[date])
-        #     a = self.learner.querysetstate(s0)
-        #     self.update_position(a)
-        #     p = price_data[self.sym][date]
-        #     date += dt.timedelta(days=1)
-        #
-        #     date_final = self.states.last_valid_index()
-        #     while date <= date_final:
-        #         if date in price_data[self.sym]:
-        #             p_prime = price_data[self.sym][date]
-        #             delta = p_prime - p
-        #             r = self.position * delta
-        #             if a != 2: # trade made
-        #                 r -= self.commission
-        #                 r -= abs(self.impact * p_prime)
-        #
-        #             s = int(self.states[date])
-        #             a = self.learner.query(s, r)
-        #             self.update_position(a)
-        #             p = p_prime
-        #         date += dt.timedelta(days=1)
   		  	   		     		  		  		    	 		 		   		 		  
     # this method should use the existing policy and test it against new data  		  	   		     		  		  		    	 		 		   		 		  
     def testPolicy(  		  	   		     		  		  		    	 		 		   		 		  
