@@ -43,11 +43,15 @@ class ManualStrategy:
     def get_signal(self, date, prev_date):
         signal = []
         # check SMA
-        if prev_date and prev_date in self.sma20['SMA'] and prev_date in self.sma50['SMA']:
-            if self.sma20['SMA'][prev_date] < self.sma50['SMA'][prev_date] and self.sma20['SMA'][date] > self.sma50['SMA'][date]:
-                signal.append(1)
-            if self.sma20['SMA'][prev_date] > self.sma50['SMA'][prev_date] and self.sma20['SMA'][date] < self.sma50['SMA'][date]:
-                signal.append(-1)
+        # if prev_date and prev_date in self.sma20['SMA'] and prev_date in self.sma50['SMA']:
+        #     if self.sma20['SMA'][prev_date] < self.sma50['SMA'][prev_date] and self.sma20['SMA'][date] > self.sma50['SMA'][date]:
+        #         signal.append(1)
+        #     if self.sma20['SMA'][prev_date] > self.sma50['SMA'][prev_date] and self.sma20['SMA'][date] < self.sma50['SMA'][date]:
+        #         signal.append(-1)
+        if self.sma20['SMA'][date] - self.sma50['SMA'][date] > 0.5:
+            signal.append(1)
+        elif self.sma20['SMA'][date] - self.sma50['SMA'][date] < -0.5:
+            signal.append(-1)
 
         # check Bollinger Band
         bbp = (self.price_data[self.sym][date] - self.bb_lower['bb_lower'][date]) / (self.bb_upper['bb_upper'][date] - self.bb_lower['bb_lower'][date])
