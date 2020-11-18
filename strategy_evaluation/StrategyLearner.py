@@ -213,8 +213,9 @@ class StrategyLearner(object):
                     output['Trade'].append(trade)
 
 
-        # output['Trade'] = []
-        # output['Date'] = []
+        # cover final position
+        output['Date'].append(ed)
+        output['Trade'].append(-self.position)
 
         trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
 

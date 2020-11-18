@@ -48,9 +48,9 @@ class ManualStrategy:
         #         signal.append(1)
         #     if self.sma20['SMA'][prev_date] > self.sma50['SMA'][prev_date] and self.sma20['SMA'][date] < self.sma50['SMA'][date]:
         #         signal.append(-1)
-        if self.sma20['SMA'][date] - self.sma50['SMA'][date] > 0.5:
+        if self.sma20['SMA'][date] - self.sma50['SMA'][date] > 0.7:
             signal.append(1)
-        elif self.sma20['SMA'][date] - self.sma50['SMA'][date] < -0.5:
+        elif self.sma20['SMA'][date] - self.sma50['SMA'][date] < -0.7:
             signal.append(-1)
 
         # check Bollinger Band
@@ -106,8 +106,8 @@ class ManualStrategy:
             prev_date = date
 
         # cover final position
-        # output['Date'].append(all_dates[-1])
-        # output['Trade'].append(-current_position)
+        output['Date'].append(ed)
+        output['Trade'].append(-current_position)
         # current_position = 0
 
         df_trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])

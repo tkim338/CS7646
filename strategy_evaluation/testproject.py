@@ -37,7 +37,7 @@ if __name__ == "__main__":
 	in_test_val = in_test.values
 	out_test_val = out_test.values
 	plt.clf()
-	plt.figure(figsize=(15,8))
+	plt.figure(figsize=(10,8))
 	plt.plot(in_test_val)
 	plt.plot(out_test_val)
 	plt.legend(['In-sample performance', 'Out-of-sample performance'])
