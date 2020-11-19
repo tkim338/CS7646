@@ -189,7 +189,7 @@ class StrategyLearner(object):
         """
         # output = {'Date': [sd, self.states.first_valid_index()], 'Trade': [0, 1000]}
         # self.position = 1000
-        output = {'Date': [sd], 'Trade': [0]}
+        output = {'Date': [self.states.index[0]], 'Trade': [0]}
         self.position = 0
 
         price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
@@ -216,7 +216,7 @@ class StrategyLearner(object):
 
 
         # cover final position
-        output['Date'].append(ed)
+        output['Date'].append(self.states.index[-1])
         output['Trade'].append(-self.position)
 
         trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
