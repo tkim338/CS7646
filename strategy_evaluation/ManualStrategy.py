@@ -106,8 +106,10 @@ class ManualStrategy:
             prev_date = date
 
         # cover final position
-        output['Date'].append(stock_data.last_valid_index())
-        output['Trade'].append(-current_position)
+        final_date = stock_data.last_valid_index()
+        if final_date not in output['Date']:
+            output['Date'].append(final_date)
+            output['Trade'].append(-current_position)
         # current_position = 0
 
         df_trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])

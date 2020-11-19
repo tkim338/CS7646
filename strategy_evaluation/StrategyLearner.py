@@ -216,8 +216,10 @@ class StrategyLearner(object):
 
 
         # cover final position
-        output['Date'].append(self.states.index[-1])
-        output['Trade'].append(-self.position)
+        final_date = self.states.index[-1]
+        if final_date not in output['Date']:
+            output['Date'].append(final_date)
+            output['Trade'].append(-self.position)
 
         trades = pd.DataFrame(data=output['Trade'], index=output['Date'], columns=[symbol])
 
