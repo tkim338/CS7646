@@ -14,6 +14,8 @@ def author():
 if __name__ == "__main__":
 	experiment1.run()
 	experiment2.run()
+	# experiment2.run()
+	# experiment2.run()
 	man = ms.ManualStrategy()
 	in_test, in_ret_bm, in_ret_man = man.in_sample_test()
 	out_test, out_ret_bm, out_ret_man = man.out_sample_test()

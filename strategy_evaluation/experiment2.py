@@ -39,6 +39,8 @@ def run():
 		vals_sl.columns = ['impact: '+str(imp)]
 		output_df_list.append(vals_sl)
 
+		print('Impact: ', str(imp), '; Num. trades: ', str(len(trades_sl.values)), '; Cum. return: ', str(vals_sl.values[-1] - 1))
+
 	trades_bm = benchmark()
 	vals_bm = msc.compute_portvals(trades_bm, start_val=100000, commission=9.95, impact=0.005)
 	vals_bm = vals_bm / vals_bm[0][0]
