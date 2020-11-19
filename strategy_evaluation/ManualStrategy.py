@@ -77,7 +77,7 @@ class ManualStrategy:
         # stock_data = get_data([symbol], all_dates, addSPY=False)
         stock_data = get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         current_position = 0
-        output = {'Date': [], 'Trade': []}
+        output = {'Date': [sd], 'Trade': [0]}
         self.setup(pd.DataFrame(stock_data[symbol]))
 
         # for date in all_dates:

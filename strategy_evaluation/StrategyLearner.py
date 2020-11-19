@@ -67,7 +67,7 @@ class StrategyLearner(object):
 
         # self.learner = q.QLearner(alpha=0.5, gamma=0.5, rar=0.5, radr=0.99, num_states=5 ** 3, num_actions=3, dyna=0)
         # self.learner = q.QLearner(alpha=0.5, gamma=0.3, rar=0.8, radr=0.99, num_states=5 ** 3, num_actions=3)
-        self.learner = q.QLearner(alpha=0.5, gamma=0.3, rar=0.8, radr=0.99, num_states=5 ** 3, num_actions=3, dyna=0)
+        self.learner = q.QLearner(alpha=0.5, gamma=0.3, rar=0.8, radr=0.99, num_states=5 ** 3, num_actions=3)
 
         self.sym = None
         self.price_data = None
@@ -144,7 +144,7 @@ class StrategyLearner(object):
         states_df.columns = [0]
         p = price_data[self.sym][self.states.first_valid_index()]
 
-        for i in range(0, 30):
+        for i in range(0, 40):
             a = self.learner.querysetstate(int(states_df[0][0]))
             trade = self.update_position(a)
 
@@ -187,8 +187,10 @@ class StrategyLearner(object):
             long so long as net holdings are constrained to -1000, 0, and 1000.  		  	   		     		  		  		    	 		 		   		 		  
         :rtype: pandas.DataFrame  		  	   		     		  		  		    	 		 		   		 		  
         """
-        output = {'Date': [self.states.first_valid_index()], 'Trade': [1000]}
-        self.position = 1000
+        # output = {'Date': [sd, self.states.first_valid_index()], 'Trade': [0, 1000]}
+        # self.position = 1000
+        output = {'Date': [sd], 'Trade': [0]}
+        self.position = 0
 
         price_data = ut.get_data([symbol], pd.date_range(sd, ed), addSPY=True)
         self.setup(pd.DataFrame(price_data[symbol]))
